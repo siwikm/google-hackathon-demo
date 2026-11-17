@@ -249,6 +249,8 @@ Accept: text/event-stream
 
 ### 4.3. Format strumienia SSE
 
+Pełne, rzeczywiste przykłady żądań i odpowiedzi (sesja, wszystkie zdarzenia SSE analizy, stan z wynikiem, rejestr) są w [przyklady-komunikacji-adk.md](przyklady-komunikacji-adk.md).
+
 Każde zdarzenie ADK to jedna linia `data: <JSON>` zakończona pustą linią. Pola są w camelCase (`functionCall`, `functionResponse`, `nodeInfo`). Każde zdarzenie ma `nodeInfo.path` z węzłem, który je wysłał (`<workflow>@<przebieg>/<węzeł>@<przebieg>`). Zdarzenie kończące węzeł ma pole `output`. Przykład skrócony dla `analiza_umowy`:
 
 ```text
