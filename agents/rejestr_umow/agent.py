@@ -1,16 +1,19 @@
-"""Scenario 2: search the contract registry for deviations from the group's rules.
+"""Scenario 2: search the contract registry for deviations from the group's rules, as an ADK Workflow.
+
+    przygotowanie_pytania → wyszukiwanie_w_rejestrze → pobranie_umow
 
 The model turns a question into SQL (own tool on SQLite, or ADK's BigQueryToolset when
 REJESTR_BACKEND=bigquery) and/or uses the deterministic rule check. It returns only file names;
-the after-agent callback loads the full rows and their deviations, so the table is never hallucinated.
+the last node loads the full rows and their deviations, so the table is never hallucinated.
 """
 
 import json
 import logging
 
 from google.adk.agents import LlmAgent
-from google.adk.agents.callback_context import CallbackContext
+from google.adk.agents.context import Context
 from google.adk.tools import ToolContext
+from google.adk.workflow import START, Workflow
 from pydantic import BaseModel, Field
 
 from core import config, rejestr
@@ -96,18 +99,20 @@ def _narzedzia() -> list:
     ]
 
 
-def zapamietaj_pytanie(callback_context: CallbackContext) -> None:
-    callback_context.state["ostatni_sql"] = None
-    callback_context.state["wynik"] = None
+def przygotowanie_pytania(ctx: Context) -> str:
+    """Clears the previous run's SQL and result, and passes the question on."""
+    ctx.state["ostatni_sql"] = None
+    ctx.state["wynik"] = None
+    content = ctx.user_content
+    return "\n".join(p.text for p in (content.parts if content else []) if p.text)
 
 
-def finalizuj(callback_context: CallbackContext) -> None:
-    state = callback_context.state
-    wynik = state.get("wynik_llm")
-    if isinstance(wynik, str):
-        wynik = json.loads(wynik)
+def pobranie_umow(ctx: Context, node_input: dict | str | None) -> dict | None:
+    """Loads the full rows and their deviations for the file names the model picked."""
+    state = ctx.state
+    wynik = json.loads(node_input) if isinstance(node_input, str) else dict(node_input or {})
     if not wynik:
-        return
+        return None
     try:
         umowy = rejestr.z_odstepstwami(rejestr.pobierz(wynik.get("file_names") or []))
     except Exception as e:
@@ -120,6 +125,8 @@ def finalizuj(callback_context: CallbackContext) -> None:
         "backend": rejestr.backend(),
         "tabela": rejestr.tabela(),
     }
+    # compact node output for the Dev UI; the full result is state["wynik"]
+    return {"umowy": len(umowy), "backend": rejestr.backend()}
 
 
 SQL_HINT = (
@@ -128,8 +135,8 @@ SQL_HINT = (
     else "Do zapytań używaj `wykonaj_sql` (SQLite, tabela `umowy`)."
 )
 
-root_agent = LlmAgent(
-    name="rejestr_umow",
+wyszukiwanie_w_rejestrze = LlmAgent(
+    name="wyszukiwanie_w_rejestrze",
     model=config.MODEL,
     generate_content_config=config.model_config(),
     description="Wyszukiwanie w rejestrze umów odstępstw od zasad Grupy Pelion (pytania w języku naturalnym).",
@@ -146,6 +153,10 @@ root_agent = LlmAgent(
     tools=_narzedzia(),
     output_schema=WynikWyszukiwania,
     output_key="wynik_llm",
-    before_agent_callback=zapamietaj_pytanie,
-    after_agent_callback=finalizuj,
+)
+
+root_agent = Workflow(
+    name="rejestr_umow",
+    description="Wyszukiwanie w rejestrze umów odstępstw od zasad Grupy Pelion (pytania w języku naturalnym).",
+    edges=[(START, przygotowanie_pytania, wyszukiwanie_w_rejestrze, pobranie_umow)],
 )

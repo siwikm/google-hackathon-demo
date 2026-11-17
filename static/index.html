@@ -63,7 +63,8 @@ button { font: inherit; color: inherit; }
 
 /* ---------- masthead */
 .top { background: var(--color-graphite); color: var(--color-white); }
-.top-in { max-width: 1240px; margin: 0 auto; padding: var(--space-xs) var(--space-md); display: flex; align-items: center; gap: var(--space-lg); flex-wrap: wrap; }
+/* one row on wide screens: the file name gives way (ellipsis) instead of pushing the user block down */
+.top-in { max-width: 1240px; margin: 0 auto; padding: var(--space-xs) var(--space-md); display: flex; align-items: center; gap: var(--space-lg); flex-wrap: nowrap; }
 .brand { display: flex; align-items: center; gap: var(--space-xs); flex: none; white-space: nowrap; }
 .logo { width: 42px; height: 42px; border-radius: 12px; background: var(--color-lime); display: grid; place-content: center; text-align: center; flex: none; }
 .logo b { display: block; color: var(--color-graphite); font: 800 16px/1 var(--font-ui); letter-spacing: -0.06em; }
@@ -368,6 +369,9 @@ body:not(.locked) > .login { display: none; }
 .foot { max-width: 1240px; margin: 0 auto; padding: var(--space-md); border-top: 1px solid var(--color-rule); color: var(--color-muted); font-size: var(--text-xs); display: flex; gap: var(--space-sm); flex-wrap: wrap; }
 .foot a { color: var(--color-navy); font-weight: 700; }
 
+@media (max-width: 1180px) {
+  .top-in { flex-wrap: wrap; }
+}
 @media (max-width: 1000px) {
   .verdict { grid-template-columns: auto minmax(0, 1fr); }
   .verdict > .panel { grid-column: 1 / -1; }
@@ -602,11 +606,10 @@ async function runAgent(app, text, state, onEvent) {
   return (await api(`/apps/${app}/users/${USER}/sessions/${session.id}`)).state || {};
 }
 
-// Live list of agent steps, fed from the SSE stream.
+// Live list of agent steps, fed from the SSE stream: tool calls of the LLM nodes (STEP_*)
+// and output events of the deterministic workflow nodes (NODE_RESULT).
 const STEP_LABEL = {
   pobierz_zasady: (a) => ["Zasady Grupy Pelion", `typ umowy: ${a.typ_umowy || "?"}`],
-  sprawdz_vat: (a) => ["Wykaz podatników VAT MF", `NIP ${a.nip || "—"} · rachunki: ${(a.rachunki || []).length}`],
-  sprawdz_sankcje: (a) => ["Lista sankcyjna MSWiA", `${(a.nazwy || []).length} nazw i cały tekst umowy`],
   schemat_rejestru: () => ["Schemat rejestru", "kolumny i zasady"],
   wykonaj_sql: (a) => ["Zapytanie SQL", a.zapytanie || ""],
   execute_sql: (a) => ["BigQuery SQL", a.query || ""],
@@ -615,7 +618,13 @@ const STEP_LABEL = {
 };
 const STEP_RESULT = {
   pobierz_zasady: (r) => [`${(r.zasady || []).length} zasad`, false],
-  sprawdz_vat: (r) => {
+  wykonaj_sql: (r) => r.blad ? [`błąd SQL: ${r.blad}`, true] : [`${r.liczba} wierszy`, false],
+  execute_sql: (r) => r.status === "ERROR" ? [`błąd: ${r.error_details}`, true] : [`${(r.rows || []).length} wierszy`, false],
+  znajdz_odstepstwa: (r) => [`${r.liczba} umów z odstępstwami`, false],
+  schemat_rejestru: (r) => [`backend: ${r.backend}`, false],
+};
+const NODE_RESULT = {
+  weryfikator_vat: (r) => {
     if (r.blad) return [r.blad, true];
     const acc = r.rachunki || [];
     const badAcc = acc.some((x) => !x.na_liscie);
@@ -624,13 +633,10 @@ const STEP_RESULT = {
     return [`${r.nazwa || `NIP ${r.nip}`} · ${r.status_vat || "brak w wykazie"} · ${rach}`,
       r.status_vat !== "Czynny" || badAcc];
   },
-  sprawdz_sankcje: (r) => (r.trafienia || []).length
+  weryfikator_sankcji: (r) => (r.trafienia || []).length
     ? [`trafienie: ${r.trafienia.map((h) => h.nazwa_na_liscie).join(", ")}`, true] : ["brak trafień", false],
-  wykonaj_sql: (r) => r.blad ? [`błąd SQL: ${r.blad}`, true] : [`${r.liczba} wierszy`, false],
-  execute_sql: (r) => r.status === "ERROR" ? [`błąd: ${r.error_details}`, true] : [`${(r.rows || []).length} wierszy`, false],
-  znajdz_odstepstwa: (r) => [`${r.liczba} umów z odstępstwami`, false],
-  schemat_rejestru: (r) => [`backend: ${r.backend}`, false],
 };
+const nodeName = (ev) => (ev.nodeInfo?.path || "").split("/").pop().split("@")[0];
 function steps(ul, thinking = ["Gemini porównuje zapisy z zasadami", "pisze raport z cytatami"]) {
   ul.innerHTML = "";
   const items = {};
@@ -649,6 +655,16 @@ function steps(ul, thinking = ["Gemini porównuje zapisy z zasadami", "pisze rap
   return {
     start(k, v) { add("model", k, v); },
     event(ev) {
+      const node = ev.output != null ? nodeName(ev) : null;
+      if (node === "klasyfikacja_i_ekstrakcja") {
+        // extraction done: the VAT and sanctions nodes start in parallel with the clause audit
+        const o = ev.output;
+        finish("model", `typ umowy: ${o.typ_umowy || "?"} · strony: ${(o.strony || []).length}`);
+        add("weryfikator_vat", "Wykaz podatników VAT MF", "NIP kontrahenta i rachunki z umowy");
+        add("weryfikator_sankcji", "Lista sankcyjna MSWiA", `${(o.strony || []).length + (o.osoby || []).length} nazw i cały tekst umowy`);
+      } else if (NODE_RESULT[node]) {
+        finish(node, ...NODE_RESULT[node](ev.output));
+      }
       for (const part of ev.content?.parts || []) {
         if (part.functionCall) {
           const fc = part.functionCall;
@@ -950,6 +966,7 @@ async function analyze() {
 function setDoc(d) {
   doc = d; result = null;
   $("fileName").textContent = d.nazwa;
+  $("fileName").title = d.nazwa;
   toggleLoader(false);
   renderIdle();
   renderDoc();

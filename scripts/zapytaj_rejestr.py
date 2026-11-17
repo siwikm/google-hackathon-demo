@@ -17,7 +17,7 @@ from rejestr_umow.agent import root_agent  # noqa: E402
 
 
 async def main(question: str) -> None:
-    runner = InMemoryRunner(agent=root_agent, app_name="rejestr_umow")
+    runner = InMemoryRunner(node=root_agent, app_name="rejestr_umow")
     session = await runner.session_service.create_session(app_name="rejestr_umow", user_id="cli")
     message = types.Content(role="user", parts=[types.Part.from_text(text=question)])
     async for event in runner.run_async(user_id="cli", session_id=session.id, new_message=message):
