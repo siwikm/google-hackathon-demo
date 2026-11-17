@@ -18,7 +18,7 @@ from core.tekst import akapity_z_bajtow, tekst_dla_agenta  # noqa: E402
 
 
 async def main(path: Path) -> None:
-    runner = InMemoryRunner(agent=root_agent, app_name="analiza_umowy")
+    runner = InMemoryRunner(node=root_agent, app_name="analiza_umowy")
     session = await runner.session_service.create_session(
         app_name="analiza_umowy", user_id="cli", state={"nazwa_pliku": path.name}
     )

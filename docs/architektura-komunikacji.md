@@ -1,6 +1,6 @@
 # Komunikacja frontend ↔ agenci ADK
 
-Dokument opisuje, co dzieje się pod spodem od kliknięcia w przeglądarce do wyświetlenia wyniku: jak wybierany jest agent, jak zapytanie trafia do modelu Gemini, jak wywoływane są narzędzia i skąd frontend bierze wynik. Stan opisu odpowiada kodowi z 2026-11-16 (Google ADK 2.14.0).
+Dokument opisuje, co dzieje się pod spodem od kliknięcia w przeglądarce do wyświetlenia wyniku: jak wybierany jest agent, jak zapytanie trafia do modelu Gemini, jak wywoływane są narzędzia i skąd frontend bierze wynik. Stan opisu odpowiada kodowi z 2026-11-17 (Google ADK 2.14.0, agenty jako grafy `Workflow`).
 
 ## 1. Przegląd
 
@@ -10,12 +10,50 @@ Aplikacja to jeden proces FastAPI ([server.py](../server.py)), w którym działa
 - **endpointy pomocnicze `/api/*`**, które nigdy nie wołają modelu: ekstrakcja tekstu z pliku, przykładowe umowy, tabela rejestru, lista zasad;
 - **frontend** [static/index.html](../static/index.html) serwowany pod `/` (trasa `/` z ADK, która przekierowuje do Dev UI, jest usuwana w [server.py:36](../server.py#L36)).
 
-| Agent (`app_name`) | Scenariusz | Zakładka UI | Narzędzia | Klucz wyniku w stanie |
+| Agent (`app_name`) | Scenariusz | Zakładka UI | Narzędzia modelu | Klucz wyniku w stanie |
 | --- | --- | --- | --- | --- |
-| `analiza_umowy` | analiza jednej umowy: ryzyka, biała lista VAT, sankcje, score, zapis do rejestru | „Analiza” | `pobierz_zasady`, `sprawdz_vat`, `sprawdz_sankcje` | `wynik` |
+| `analiza_umowy` | analiza jednej umowy: ryzyka, biała lista VAT, sankcje, score, zapis do rejestru | „Analiza” | `pobierz_zasady` (VAT i sankcje sprawdzają węzły deterministyczne) | `wynik` |
 | `rejestr_umow` | pytania w języku naturalnym o odstępstwa w rejestrze umów | „Rejestr” | `schemat_rejestru`, `znajdz_odstepstwa`, `wykonaj_sql` albo BigQuery `execute_sql`/`get_table_info` | `wynik` |
 
-Oba agenty to pojedyncze `LlmAgent` bez sub-agentów. Nie ma agenta-routera ani `transfer_to_agent`.
+### 1.1. Agenty jako grafy `Workflow`
+
+Oba `root_agent` to grafy `google.adk.workflow.Workflow` (w ADK 2.14 `SequentialAgent` i `ParallelAgent` są oznaczone jako przestarzałe na rzecz `Workflow`). Węzeł grafu to `LlmAgent` (wywołanie Gemini) albo funkcja Python (węzeł deterministyczny, bez modelu). Nie ma agenta-routera ani `transfer_to_agent`. ADK Dev UI (`/dev-ui/`) rysuje oba grafy, a podgląd zdarzeń pokazuje wyjście każdego węzła.
+
+`analiza_umowy` ([agents/analiza_umowy/agent.py:529](../agents/analiza_umowy/agent.py#L529)):
+
+```mermaid
+flowchart LR
+    S((START)) --> P["przygotowanie<br/><i>funkcja</i>"]
+    P --> E["klasyfikacja_i_ekstrakcja<br/><b>LlmAgent</b>"]
+    E --> V["weryfikator_vat<br/><i>funkcja</i>"]
+    E --> K["weryfikator_sankcji<br/><i>funkcja</i>"]
+    E --> A["audytor_klauzul<br/><b>LlmAgent</b> + pobierz_zasady"]
+    V --> J["scalenie_wynikow<br/><i>JoinNode</i>"]
+    K --> J
+    A --> J
+    J --> F["finalizacja_i_scoring<br/><i>funkcja</i>"]
+```
+
+| Węzeł | Rodzaj | Wejście | Wyjście |
+| --- | --- | --- | --- |
+| `przygotowanie` | funkcja | wiadomość użytkownika `[P1] ... [Pn]` | tekst umowy; `state.akapity`, reset kluczy poprzedniego przebiegu |
+| `klasyfikacja_i_ekstrakcja` | `LlmAgent`, `output_schema=EkstrakcjaUmowy` | tekst umowy | `state.ekstrakcja`: typ, strony z NIP, osoby, płatność, kluczowe zapisy, wymiary |
+| `weryfikator_vat` | funkcja | `state.ekstrakcja`, `state.akapity` | wynik `vat.sprawdz` dla NIP kontrahenta i wszystkich rachunków z tekstu |
+| `weryfikator_sankcji` | funkcja | `state.ekstrakcja`, `state.akapity` | trafienia `sprawdz_nazwy` (strony i osoby) + `skanuj_akapity` |
+| `audytor_klauzul` | `LlmAgent` z `pobierz_zasady`, `output_schema=OcenaKlauzul` | wynik ekstrakcji + tekst umowy w instrukcji | `state.ocena_klauzul`: ryzyka i zgodne zasady |
+| `scalenie_wynikow` | `JoinNode` | wyjścia trzech gałęzi | słownik `{nazwa węzła: wyjście}` |
+| `finalizacja_i_scoring` | funkcja | wyjście `scalenie_wynikow`, `state.ekstrakcja` | `state.wynik`, zapis do rejestru |
+
+Trzy węzły po ekstrakcji działają równolegle. Węzły VAT i sankcji kończą się w ułamku sekundy, więc czas gałęzi wyznacza audytor.
+
+`rejestr_umow` ([agents/rejestr_umow/agent.py:158](../agents/rejestr_umow/agent.py#L158)):
+
+```mermaid
+flowchart LR
+    S((START)) --> P["przygotowanie_pytania<br/><i>funkcja</i>"]
+    P --> W["wyszukiwanie_w_rejestrze<br/><b>LlmAgent</b> + narzędzia SQL"]
+    W --> U["pobranie_umow<br/><i>funkcja</i>"]
+```
 
 ## 2. Komponenty
 
@@ -28,8 +66,8 @@ flowchart LR
         H["Helpery /api/*<br/>server.py"]
         ADK["ADK API server<br/>get_fast_api_app"]
         SS[("InMemorySessionService")]
-        A1["analiza_umowy<br/>LlmAgent"]
-        A2["rejestr_umow<br/>LlmAgent"]
+        A1["analiza_umowy<br/>Workflow: 2 węzły LLM + 4 funkcje"]
+        A2["rejestr_umow<br/>Workflow: 1 węzeł LLM + 2 funkcje"]
         CORE["core/*<br/>zasady, vat, sankcje,<br/>scoring, rejestr, db"]
     end
     G[["Gemini<br/>Vertex AI"]]
@@ -71,22 +109,22 @@ flowchart LR
 
 Agenta wybiera **frontend, na sztywno, według zakładki**. Model nie bierze udziału w wyborze:
 
-- zakładka „Analiza”, przycisk analizy → `runAgent("analiza_umowy", ...)` ([static/index.html:711](../static/index.html#L711));
-- zakładka „Rejestr”, pytanie lub chip → `runAgent("rejestr_umow", ...)` ([static/index.html:799](../static/index.html#L799)).
+- zakładka „Analiza”, przycisk analizy → `runAgent("analiza_umowy", ...)` ([static/index.html:948](../static/index.html#L948));
+- zakładka „Rejestr”, pytanie lub chip → `runAgent("rejestr_umow", ...)` ([static/index.html:1054](../static/index.html#L1054)).
 
-`app_name` to nazwa katalogu w [agents/](../agents/). ADK (z `web=True` jest to `NestedAgentLoader`) przy pierwszym żądaniu dla danego `app_name` importuje moduł `agents/<app_name>/agent.py` i bierze z niego obiekt `root_agent`. Następnie:
+`app_name` to nazwa katalogu w [agents/](../agents/). ADK (z `web=True` jest to `NestedAgentLoader`) przy pierwszym żądaniu dla danego `app_name` importuje moduł `agents/<app_name>/agent.py` i bierze z niego obiekt `root_agent` (loader przyjmuje `BaseAgent` albo węzeł `BaseNode`, czyli także `Workflow`). Następnie:
 
 1. agent trafia do cache loadera (`_agent_cache`);
 2. ADK owija go w `App` i tworzy `Runner`, zapisywany w `runner_dict[app_name]` (`get_runner_async` w `google/adk/cli/api_server.py`);
 3. kolejne żądania z tym samym `app_name` używają gotowego `Runner`.
 
-Konsekwencja: kod na poziomie modułu agenta (np. `_narzedzia()` i `SQL_HINT` w [agents/rejestr_umow/agent.py:76-129](../agents/rejestr_umow/agent.py#L76-L129)) wykonuje się raz na proces. Zmiana `REJESTR_BACKEND` wymaga restartu serwera.
+Konsekwencja: kod na poziomie modułu agenta (np. `_narzedzia()` i `SQL_HINT` w [agents/rejestr_umow/agent.py:79-136](../agents/rejestr_umow/agent.py#L79-L136)) wykonuje się raz na proces. Zmiana `REJESTR_BACKEND` wymaga restartu serwera.
 
 Listę dostępnych agentów zwraca `GET /list-apps` (z niej korzysta Dev UI pod `/dev-ui/`, gdzie agenta wybiera się z listy rozwijanej).
 
 ### 3.2. Sekwencja wspólna dla obu agentów
 
-Funkcja `runAgent` ([static/index.html:361-388](../static/index.html#L361-L388)) realizuje zawsze te same trzy kroki: utworzenie sesji, uruchomienie agenta ze strumieniem SSE, odczyt stanu sesji.
+Funkcja `runAgent` ([static/index.html:576-603](../static/index.html#L576-L603)) realizuje zawsze te same trzy kroki: utworzenie sesji, uruchomienie agenta ze strumieniem SSE, odczyt stanu sesji.
 
 ```mermaid
 sequenceDiagram
@@ -97,7 +135,7 @@ sequenceDiagram
     participant SS as InMemorySessionService
     participant AL as NestedAgentLoader
     participant R as Runner
-    participant A as root_agent
+    participant A as root_agent: Workflow
     participant G as Gemini
 
     U->>FE: akcja w zakładce Analiza albo Rejestr
@@ -116,18 +154,24 @@ sequenceDiagram
     end
     API->>R: run_async(user_id, session_id, new_message)
     R->>SS: get_session, append_event(wiadomość użytkownika)
-    R->>A: before_agent_callback
-    loop dopóki model zwraca wywołania narzędzi
-        A->>G: instrukcja, historia, deklaracje narzędzi
-        G-->>A: functionCall
-        A-->>FE: SSE data: Event z functionCall
-        A->>A: wykonanie funkcji Python, zapis do state
-        A-->>FE: SSE data: Event z functionResponse
+    loop węzły grafu w kolejności krawędzi, gałęzie równolegle
+        alt węzeł-funkcja
+            A->>A: funkcja Python, zapis do state
+            A-->>FE: SSE data: Event z nodeInfo.path i output
+        else węzeł LlmAgent
+            loop dopóki model zwraca wywołania narzędzi
+                A->>G: instrukcja, wejście węzła, deklaracje narzędzi
+                G-->>A: functionCall
+                A-->>FE: SSE data: Event z functionCall
+                A->>A: wykonanie funkcji Python, zapis do state
+                A-->>FE: SSE data: Event z functionResponse
+            end
+            G-->>A: odpowiedź końcowa zgodna z output_schema
+            A->>SS: state[output_key] = JSON zwalidowany schematem
+            A-->>FE: SSE data: Event z output węzła
+        end
     end
-    G-->>A: odpowiedź końcowa zgodna z output_schema
-    A->>SS: state[output_key] = JSON zwalidowany schematem
-    R->>A: after_agent_callback finalizuj
-    A->>SS: state.wynik = wynik końcowy
+    A->>SS: ostatni węzeł: state.wynik = wynik końcowy
     API-->>FE: koniec strumienia SSE
     FE->>API: GET /apps/{app}/users/demo/sessions/{id}
     API->>SS: get_session
@@ -137,25 +181,25 @@ sequenceDiagram
 
 Zasady, które wynikają z tej sekwencji:
 
-- **Każde kliknięcie tworzy nową sesję.** Agenty nie mają pamięci rozmowy między kolejnymi pytaniami. `user_id` jest stały (`"demo"`, [static/index.html:329](../static/index.html#L329)).
-- **Sesje są w pamięci procesu.** `use_local_storage=False` w [server.py:34](../server.py#L34) powoduje użycie `InMemorySessionService`. Restart serwera usuwa wszystkie sesje.
-- **SSE służy tylko do pokazywania postępu.** Frontend wyświetla z niego kroki (`functionCall` → nowa pozycja, `functionResponse` → wynik kroku, funkcja `steps` w [static/index.html:413](../static/index.html#L413)). Wynik końcowy pochodzi z `GET` sesji, bo powstaje w `after_agent_callback`, a nie w odpowiedzi modelu.
+- **Każde kliknięcie tworzy nową sesję.** Agenty nie mają pamięci rozmowy między kolejnymi pytaniami. `user_id` jest stały (`"demo"`, [static/index.html:542](../static/index.html#L542)).
+- **Sesje są w pamięci procesu.** `use_local_storage=False` w [server.py:36](../server.py#L36) powoduje użycie `InMemorySessionService`. Restart serwera usuwa wszystkie sesje.
+- **SSE służy tylko do pokazywania postępu.** Frontend wyświetla z niego kroki (funkcja `steps` w [static/index.html:636](../static/index.html#L636)): `functionCall` → nowa pozycja, `functionResponse` → wynik kroku, a zdarzenie z `output` węzła deterministycznego (`NODE_RESULT`, [static/index.html:622](../static/index.html#L622)) → wynik kroku VAT albo sankcji. Wynik końcowy pochodzi z `GET` sesji, bo powstaje w ostatnim węźle grafu, a nie w odpowiedzi modelu.
 - **`streaming: false`** oznacza `StreamingMode.NONE`: transport to nadal SSE, ale każde zdarzenie jest kompletną odpowiedzią modelu albo narzędzia, bez fragmentów tokenów.
 
 ### 3.3. Co dokładnie dostaje model
 
-Przy każdym wywołaniu Gemini ADK składa żądanie z:
+Węzeł `LlmAgent` w grafie działa w trybie `single_turn`: model **widzi tylko wejście węzła** (wyjście poprzedniego węzła, wstawione jako wiadomość użytkownika) i własne wywołania narzędzi, a nie całą historię sesji. Przy każdym wywołaniu Gemini ADK składa żądanie z:
 
-1. **instrukcji systemowej** – pole `instruction` agenta ([agents/analiza_umowy/agent.py:421-437](../agents/analiza_umowy/agent.py#L421-L437), [agents/rejestr_umow/agent.py:136-145](../agents/rejestr_umow/agent.py#L136-L145)) plus dopiski ADK;
-2. **historii bieżącego wywołania** – wiadomość użytkownika oraz dotychczasowe pary `functionCall`/`functionResponse`;
+1. **instrukcji systemowej** – pole `instruction` węzła ([agents/analiza_umowy/agent.py:178](../agents/analiza_umowy/agent.py#L178), [agents/analiza_umowy/agent.py:273-290](../agents/analiza_umowy/agent.py#L273-L290), [agents/rejestr_umow/agent.py:143](../agents/rejestr_umow/agent.py#L143)) plus dopiski ADK;
+2. **wejścia węzła** – dla `klasyfikacja_i_ekstrakcja` tekst umowy z węzła `przygotowanie`, dla `audytor_klauzul` wynik ekstrakcji (JSON), dla `wyszukiwanie_w_rejestrze` pytanie użytkownika – oraz dotychczasowych par `functionCall`/`functionResponse` tego węzła;
 3. **deklaracji narzędzi** – generowanych z sygnatur i docstringów funkcji Python. Parametr `tool_context: ToolContext` jest ukryty przed modelem i wstrzykiwany przez ADK;
-4. **konfiguracji generowania** z `config.model_config()` ([core/config.py:36-47](../core/config.py#L36-L47)): `temperature=0.2`, timeout 90 s na wywołanie, do 3 prób z backoffem 1–8 s dla HTTP 408/429/500/502/503/504.
+4. **konfiguracji generowania** z `config.model_config()` ([core/config.py:39](../core/config.py#L39)): `temperature=0.2`, timeout 90 s na wywołanie, do 3 prób z backoffem 1–8 s dla HTTP 408/429/500/502/503/504.
 
-Stan sesji (np. `nazwa_pliku`) **nie trafia do promptu**: instrukcje nie zawierają placeholderów `{klucz}`. Stan jest czytany wyłącznie przez narzędzia i callbacki.
+Audytor potrzebuje dosłownego tekstu umowy do cytatów, a jego wejściem jest tylko wynik ekstrakcji. Dlatego jego instrukcja jest funkcją (`_instrukcja_audytora`), która dokleja tekst `[P1] ... [Pn]` ze `state.akapity`. Poza tym stan sesji (np. `nazwa_pliku`) **nie trafia do promptu**: instrukcje nie zawierają placeholderów `{klucz}`, a stan czytają narzędzia i węzły-funkcje.
 
-**Wynik strukturalny.** Oba agenty mają jednocześnie `tools` i `output_schema`. Gdy model nie obsługuje natywnie obu naraz, ADK dokłada narzędzie `set_model_response` z schematem Pydantic (`google/adk/flows/llm_flows/prompt/_schema.py`). Model oddaje wtedy wynik końcowy jako wywołanie tego narzędzia, ADK waliduje JSON schematem i zapisuje go w `state[output_key]`. Frontend pomija `set_model_response` na liście kroków.
+**Wynik strukturalny.** `klasyfikacja_i_ekstrakcja` ma tylko `output_schema`, więc Gemini zwraca JSON natywnie (`response_schema`). `audytor_klauzul` i `wyszukiwanie_w_rejestrze` mają jednocześnie `tools` i `output_schema`. Gdy model nie obsługuje natywnie obu naraz, ADK dokłada narzędzie `set_model_response` z schematem Pydantic (`google/adk/flows/llm_flows/prompt/_schema.py`). Model oddaje wtedy wynik końcowy jako wywołanie tego narzędzia, ADK waliduje JSON schematem i zapisuje go w `state[output_key]`. Frontend pomija `set_model_response` na liście kroków.
 
-**Kolejność narzędzi** wynika z instrukcji, ale decyduje o niej model. Model może zwrócić kilka `functionCall` w jednej odpowiedzi (wywołania równoległe). Frontend obsługuje to zbiorem `pending` i dopiero po komplecie odpowiedzi pokazuje krok „Gemini porównuje zapisy...”.
+**Kolejność kroków.** W `analiza_umowy` kolejność wyznacza graf: ekstrakcja, potem równolegle VAT, sankcje i audyt, na końcu scoring. Model decyduje tylko o narzędziach wewnątrz swojego węzła. Frontend obsługuje równoległe `functionCall` zbiorem `pending` i dopiero po komplecie odpowiedzi pokazuje krok „Gemini porównuje zapisy...”.
 
 ## 4. Protokół HTTP
 
@@ -163,17 +207,18 @@ Stan sesji (np. `nazwa_pliku`) **nie trafia do promptu**: instrukcje nie zawiera
 
 | Metoda i ścieżka | Właściciel | Model? | Opis |
 | --- | --- | --- | --- |
-| `GET /` | [server.py:56](../server.py#L56) | nie | frontend |
-| `GET /api/przyklady` | [server.py:61](../server.py#L61) | nie | lista przykładowych umów z `wiedza/` |
-| `GET /api/przyklady/{nazwa}` | [server.py:66](../server.py#L66) | nie | akapity, bloki podglądu i tekst `[Pn]` przykładu |
-| `POST /api/tekst` | [server.py:74](../server.py#L74) | nie | to samo dla wgranego pliku (multipart `plik`, TXT/MD/DOCX, max 15 MB) |
-| `GET /api/rejestr` | [server.py:82](../server.py#L82) | nie | cały rejestr z odstępstwami wyliczonymi deterministycznie |
-| `GET /api/zasady` | [server.py:91](../server.py#L91) | nie | lista zasad `ZASADY` |
+| `GET /` | [server.py:72](../server.py#L72) | nie | frontend |
+| `GET /api/przyklady` | [server.py:77](../server.py#L77) | nie | lista przykładowych umów z `wiedza/` |
+| `GET /api/przyklady/{nazwa}` | [server.py:82](../server.py#L82) | nie | akapity, bloki podglądu i tekst `[Pn]` przykładu |
+| `POST /api/tekst` | [server.py:90](../server.py#L90) | nie | to samo dla wgranego pliku (multipart `plik`, TXT/MD/DOCX, max 15 MB) |
+| `GET /api/rejestr` | [server.py:110](../server.py#L110) | nie | cały rejestr z odstępstwami wyliczonymi deterministycznie |
+| `GET /api/zasady` | [server.py:122](../server.py#L122) | nie | lista zasad `ZASADY` |
 | `GET /list-apps` | ADK | nie | nazwy agentów z `agents/` |
 | `POST /apps/{app}/users/{user}/sessions` | ADK | nie | nowa sesja ze stanem początkowym |
 | `GET /apps/{app}/users/{user}/sessions/{id}` | ADK | nie | sesja ze stanem i zdarzeniami |
 | `POST /run_sse` | ADK | **tak** | uruchomienie agenta, odpowiedź `text/event-stream` |
 | `GET /dev-ui/` | ADK | – | ADK Dev UI dla tych samych agentów |
+| `GET /dev/apps/{app}/graph` | ADK | nie | graf agenta w formacie DOT (z niego Dev UI rysuje workflow) |
 
 ### 4.2. Format żądań
 
@@ -204,15 +249,19 @@ Accept: text/event-stream
 
 ### 4.3. Format strumienia SSE
 
-Każde zdarzenie ADK to jedna linia `data: <JSON>` zakończona pustą linią. Pola są w camelCase (`functionCall`, `functionResponse`). Przykład skrócony:
+Każde zdarzenie ADK to jedna linia `data: <JSON>` zakończona pustą linią. Pola są w camelCase (`functionCall`, `functionResponse`, `nodeInfo`). Każde zdarzenie ma `nodeInfo.path` z węzłem, który je wysłał (`<workflow>@<przebieg>/<węzeł>@<przebieg>`). Zdarzenie kończące węzeł ma pole `output`. Przykład skrócony dla `analiza_umowy`:
 
 ```text
-data: {"author":"analiza_umowy","content":{"role":"model","parts":[{"functionCall":{"id":"adk-…","name":"sprawdz_vat","args":{"nip":"5260250274","rachunki":["PL 12 …"]}}}]}, ...}
+data: {"author":"klasyfikacja_i_ekstrakcja","nodeInfo":{"path":"analiza_umowy@1/klasyfikacja_i_ekstrakcja@1"},"content":{"parts":[{"text":"{...}"}]},"output":{"typ_umowy":"B2B","strony":[...],...}, ...}
 
-data: {"author":"analiza_umowy","content":{"role":"user","parts":[{"functionResponse":{"id":"adk-…","name":"sprawdz_vat","response":{...}}}]},"actions":{"stateDelta":{"vat":{...}}}, ...}
+data: {"author":"analiza_umowy","nodeInfo":{"path":"analiza_umowy@1/weryfikator_vat@1"},"output":{"nip":"5260250274","status_vat":"Czynny","rachunki":[...]}, ...}
+
+data: {"author":"audytor_klauzul","nodeInfo":{"path":"analiza_umowy@1/audytor_klauzul@1"},"content":{"role":"model","parts":[{"functionCall":{"id":"adk-…","name":"pobierz_zasady","args":{"typ_umowy":"B2B"}}}]}, ...}
 ```
 
-Błąd w trakcie działania agenta nie zmienia kodu HTTP (nagłówki 200 zostały już wysłane). ADK wysyła wtedy zdarzenie `data: {"error": "<Typ>: <komunikat>", "error_details": {...}}`, a frontend zamienia je na wyjątek ([static/index.html:382](../static/index.html#L382)).
+Węzły-funkcje nie mają `content`, więc nie wysyłają `functionCall`. Frontend rozpoznaje je po `nodeInfo.path` i `output`: wynik ekstrakcji otwiera kroki „Wykaz podatników VAT MF” i „Lista sankcyjna MSWiA”, a wyjścia `weryfikator_vat` i `weryfikator_sankcji` je zamykają.
+
+Błąd w trakcie działania agenta nie zmienia kodu HTTP (nagłówki 200 zostały już wysłane). ADK wysyła wtedy zdarzenie `data: {"error": "<Typ>: <komunikat>", "error_details": {...}}`, a frontend zamienia je na wyjątek ([static/index.html:597](../static/index.html#L597)).
 
 ## 5. Scenariusz 1: `analiza_umowy`
 
@@ -221,10 +270,9 @@ sequenceDiagram
     autonumber
     participant FE as Frontend
     participant SRV as server.py /api
-    participant ADK as ADK Runner
-    participant CB as Callbacki agenta
+    participant ADK as ADK Runner (Workflow)
+    participant N as Węzły-funkcje
     participant G as Gemini
-    participant T as Narzędzia
     participant DB as SQLite rejestr.db
     participant MF as API MF
     participant REJ as Rejestr SQLite albo BigQuery
@@ -236,45 +284,47 @@ sequenceDiagram
 
     FE->>ADK: POST sessions, state: nazwa_pliku
     FE->>ADK: POST /run_sse z tekstem [P1] ... [Pn]
-    ADK->>CB: zapamietaj_tekst
-    CB->>CB: state.akapity z wiadomości, reset vat, sankcje, wynik, analiza
+    ADK->>N: przygotowanie
+    N->>N: state.akapity z wiadomości, reset ekstrakcja, ocena_klauzul, wynik
 
-    ADK->>G: instrukcja + tekst umowy + 3 narzędzia
-    G-->>ADK: functionCall pobierz_zasady(typ_umowy)
-    ADK->>T: zasady_dla(typ), state.typ_umowy
-    T-->>G: zasady B2B albo DPA + ALL
+    ADK->>G: klasyfikacja_i_ekstrakcja: instrukcja + tekst umowy
+    G-->>ADK: JSON EkstrakcjaUmowy, state.ekstrakcja
+    ADK-->>FE: SSE output ekstrakcji, frontend otwiera kroki VAT i sankcji
 
-    G-->>ADK: functionCall sprawdz_vat(nip, rachunki)
-    ADK->>T: vat.sprawdz
-    T->>DB: SELECT vat_cache dla nip i dnia
-    alt brak w cache
-        T->>MF: GET /api/search/nip/{nip}?date=dzień
-        alt API odpowiada
-            MF-->>T: subject, statusVat, accountNumbers
-            T->>DB: INSERT OR REPLACE vat_cache
-        else błąd sieci lub limitu
-            T->>T: plik offline wiedza/vat_cache/{nip}.json
+    par weryfikator_vat
+        ADK->>N: vat.sprawdz(NIP kontrahenta, rachunki z tekstu)
+        N->>DB: SELECT vat_cache dla nip i dnia
+        alt brak w cache
+            N->>MF: GET /api/search/nip/{nip}?date=dzień
+            alt API odpowiada
+                MF-->>N: subject, statusVat, accountNumbers
+                N->>DB: INSERT OR REPLACE vat_cache
+            else błąd sieci lub limitu
+                N->>N: plik offline wiedza/vat_cache/{nip}.json
+            end
         end
+        N-->>FE: SSE output: status VAT, rachunki z flagą na_liscie
+    and weryfikator_sankcji
+        ADK->>N: sprawdz_nazwy(strony + osoby) + skanuj_akapity(state.akapity)
+        N->>DB: SELECT sankcje, wynik w lru_cache
+        N-->>FE: SSE output: trafienia
+    and audytor_klauzul
+        ADK->>G: instrukcja z tekstem umowy + wynik ekstrakcji
+        G-->>ADK: functionCall pobierz_zasady(typ_umowy)
+        ADK->>ADK: zasady_dla(typ), state.typ_umowy
+        G-->>ADK: OcenaKlauzul: ryzyka, zgodnosc
+        ADK->>ADK: walidacja schematu, state.ocena_klauzul
     end
-    T-->>G: status VAT, rachunki z flagą na_liscie, state.vat
 
-    G-->>ADK: functionCall sprawdz_sankcje(nazwy)
-    ADK->>T: sprawdz_nazwy(nazwy) + skanuj_akapity(state.akapity)
-    T->>DB: SELECT sankcje, wynik w lru_cache
-    T-->>G: trafienia, state.sankcje
-
-    G-->>ADK: set_model_response z AnalizaUmowy
-    ADK->>ADK: walidacja schematu, state.analiza
-
-    ADK->>CB: finalizuj
-    CB->>CB: ryzyka ALL-SANKCJE tylko z wyniku listy
-    CB->>CB: ryzyka ALL-VAT tylko z wyniku wykazu, fallback gdy model pominął narzędzie
-    CB->>CB: B2B-WALOR, B2B-TERMIN, B2B-KSEF z wymiarów, ocen_wymiarowe
-    CB->>CB: sortowanie, identyfikatory R1..Rn, scoring.oblicz
+    ADK->>N: scalenie_wynikow (JoinNode), potem finalizacja_i_scoring
+    N->>N: ryzyka ALL-SANKCJE tylko z trafień listy
+    N->>N: ryzyka ALL-VAT tylko z wyniku wykazu
+    N->>N: B2B-WALOR, B2B-TERMIN, B2B-KSEF z wymiarów, ocen_wymiarowe
+    N->>N: sortowanie, identyfikatory R1..Rn, scoring.oblicz
     opt typ umowy B2B albo DPA
-        CB->>REJ: rejestr.zapisz(wiersz), status NOWA_ANALIZA
+        N->>REJ: rejestr.zapisz(wiersz), status NOWA_ANALIZA
     end
-    CB->>CB: state.wynik
+    N->>N: state.wynik
     ADK-->>FE: koniec SSE
     FE->>ADK: GET sesji
     ADK-->>FE: state.wynik
@@ -285,15 +335,16 @@ sequenceDiagram
 
 | Element wyniku | Źródło | Gdzie |
 | --- | --- | --- |
-| typ umowy, strony, podsumowanie, kluczowe zapisy, cytaty, wymiary | model | schemat `AnalizaUmowy`, [agent.py:108-119](../agents/analiza_umowy/agent.py#L108-L119) |
-| ryzyka z zasad B2B/DPA (poza trzema wymiarowymi) | model | `analiza.ryzyka` |
-| ryzyka `ALL-SANKCJE` | kod, lista MSWiA | `finalizuj`, [agent.py:321-335](../agents/analiza_umowy/agent.py#L321-L335) |
-| ryzyka `ALL-VAT` | kod, wykaz MF | `finalizuj`, [agent.py:337-346](../agents/analiza_umowy/agent.py#L337-L346) |
-| poziom `B2B-WALOR`, `B2B-TERMIN`, `B2B-KSEF` | kod, z wymiarów wyekstrahowanych przez model | `_wymus_zasady_wymiarowe`, [agent.py:259-308](../agents/analiza_umowy/agent.py#L259-L308) |
-| score 0–100 i poziom | kod | [core/scoring.py:24](../core/scoring.py#L24) |
-| zapis do rejestru | kod | [agent.py:357-386](../agents/analiza_umowy/agent.py#L357-L386) |
+| typ umowy, strony, osoby, podsumowanie, kluczowe zapisy, cytaty, wymiary | model, węzeł `klasyfikacja_i_ekstrakcja` | schemat `EkstrakcjaUmowy`, [agent.py:123](../agents/analiza_umowy/agent.py#L123) |
+| ryzyka i zgodność z zasad B2B/DPA/NDA i `ALL-*` (poza sankcjami, VAT i trzema wymiarowymi) | model, węzeł `audytor_klauzul` | schemat `OcenaKlauzul`, [agent.py:140](../agents/analiza_umowy/agent.py#L140) |
+| wybór NIP kontrahenta i rachunków do sprawdzenia | kod, z wyniku ekstrakcji i tekstu umowy | `weryfikator_vat`, [agent.py:198-232](../agents/analiza_umowy/agent.py#L198-L232) |
+| ryzyka `ALL-SANKCJE` | kod, lista MSWiA | `weryfikator_sankcji` i `_ryzyko_sankcyjne`, [agent.py:235](../agents/analiza_umowy/agent.py#L235), [agent.py:315](../agents/analiza_umowy/agent.py#L315) |
+| ryzyka `ALL-VAT` | kod, wykaz MF | `_ryzyko_vat`, [agent.py:335](../agents/analiza_umowy/agent.py#L335) |
+| poziom `B2B-WALOR`, `B2B-TERMIN`, `B2B-KSEF` | kod, z wymiarów wyekstrahowanych przez model | `_wymus_zasady_wymiarowe`, [agent.py:376](../agents/analiza_umowy/agent.py#L376) |
+| score 0–100 i poziom | kod | [core/scoring.py:32](../core/scoring.py#L32) |
+| zapis do rejestru | kod | `_zapisz_w_rejestrze`, [agent.py:428](../agents/analiza_umowy/agent.py#L428) |
 
-Wyniki narzędzi VAT i sankcji są nadrzędne wobec modelu: `finalizuj` usuwa ryzyka `ALL-*` zgłoszone przez model i odtwarza je wyłącznie z wyników narzędzi. Jeżeli model nie wywołał `sprawdz_sankcje` albo `sprawdz_vat`, callback wykonuje te sprawdzenia sam (`skanuj_akapity`, `_vat_fallback`).
+Sprawdzenia VAT i sankcji wykonują węzły deterministyczne, zawsze, bez udziału modelu: audytor ma w instrukcji polecenie pominięcia `ALL-SANKCJE` i `ALL-VAT`, a `finalizacja_i_scoring` i tak usuwa takie ryzyka od modelu i odtwarza je wyłącznie z wyników weryfikatorów. Gdy w umowie nie ma 10-cyfrowego NIP-u kontrahenta, `weryfikator_vat` zwraca `{"blad": "brak NIP kontrahenta w umowie"}`, a UI pokazuje „nie sprawdzono”. Cytat ryzyka sankcyjnego to sama nazwa z ekstrakcji, gdy występuje dosłownie w akapicie, w przeciwnym razie cały akapit.
 
 Cytaty wskazują numer akapitu `[Pn]`. Ten sam numer ma pole `p` bloków z [core/struktura.py](../core/struktura.py), więc frontend nanosi ryzyka bezpośrednio na podgląd dokumentu.
 
@@ -304,8 +355,8 @@ sequenceDiagram
     autonumber
     participant FE as Frontend
     participant SRV as server.py /api
-    participant ADK as ADK Runner
-    participant CB as Callbacki agenta
+    participant ADK as ADK Runner (Workflow)
+    participant CB as Węzły-funkcje
     participant G as Gemini
     participant T as Narzędzia
     participant REJ as Rejestr SQLite albo BigQuery
@@ -317,8 +368,8 @@ sequenceDiagram
 
     FE->>ADK: POST sessions, pusty state
     FE->>ADK: POST /run_sse z pytaniem użytkownika
-    ADK->>CB: zapamietaj_pytanie, reset ostatni_sql i wynik
-    ADK->>G: instrukcja + pytanie + narzędzia
+    ADK->>CB: przygotowanie_pytania, reset ostatni_sql i wynik
+    ADK->>G: wyszukiwanie_w_rejestrze: instrukcja + pytanie + narzędzia
     G-->>ADK: functionCall schemat_rejestru
     T-->>G: kolumny, typy, uwagi, zasady z progami
 
@@ -342,7 +393,7 @@ sequenceDiagram
 
     G-->>ADK: set_model_response z WynikWyszukiwania
     ADK->>ADK: state.wynik_llm = odpowiedz, sql, file_names
-    ADK->>CB: finalizuj
+    ADK->>CB: pobranie_umow z wyjściem modelu jako wejściem
     CB->>REJ: rejestr.pobierz(file_names)
     CB->>CB: z_odstepstwami, state.wynik
     ADK-->>FE: koniec SSE
@@ -351,38 +402,37 @@ sequenceDiagram
     FE->>SRV: GET /api/rejestr, odświeżenie tabeli z podświetleniem trafień
 ```
 
-Model zwraca **tylko nazwy plików** (`file_names`). Pełne wiersze i ich odstępstwa ładuje `finalizuj` z rejestru ([agents/rejestr_umow/agent.py:104-122](../agents/rejestr_umow/agent.py#L104-L122)), więc tabela w UI zawsze pokazuje dane z bazy, a nie tekst wygenerowany przez model.
+Model zwraca **tylko nazwy plików** (`file_names`). Pełne wiersze i ich odstępstwa ładuje węzeł `pobranie_umow` z rejestru ([agents/rejestr_umow/agent.py:110-129](../agents/rejestr_umow/agent.py#L110-L129)), więc tabela w UI zawsze pokazuje dane z bazy, a nie tekst wygenerowany przez model.
 
-Zestaw narzędzi zależy od backendu ([agents/rejestr_umow/agent.py:76-96](../agents/rejestr_umow/agent.py#L76-L96)):
+Zestaw narzędzi zależy od backendu ([agents/rejestr_umow/agent.py:79-99](../agents/rejestr_umow/agent.py#L79-L99)):
 
 | `REJESTR_BACKEND` | Narzędzie SQL | Zabezpieczenie zapisu | Źródło pola `sql` w wyniku |
 | --- | --- | --- | --- |
-| `sqlite` (domyślnie) | `wykonaj_sql` | regex `SELECT`/`WITH`, brak `;`, połączenie `mode=ro`, limit 200 wierszy | pole `sql` od modelu, w razie braku `state.ostatni_sql` |
-| `bigquery` | `execute_sql`, `get_table_info` z `BigQueryToolset` | `WriteMode.BLOCKED` | wyłącznie pole `sql` od modelu (toolset nie zapisuje `ostatni_sql`) |
+| `sqlite` (domyślnie bez `BQ_PROJECT`) | `wykonaj_sql` | regex `SELECT`/`WITH`, brak `;`, połączenie `mode=ro`, limit 200 wierszy | pole `sql` od modelu, w razie braku `state.ostatni_sql` |
+| `bigquery` (domyślnie, gdy jest `BQ_PROJECT`) | `execute_sql`, `get_table_info` z `BigQueryToolset` | `WriteMode.BLOCKED` | wyłącznie pole `sql` od modelu (toolset nie zapisuje `ostatni_sql`) |
 
 ## 7. Stan sesji jako kontrakt
 
-Stan sesji ADK łączy narzędzia, callbacki i frontend. Frontend czyta tylko klucz `wynik`.
+Stan sesji ADK łączy węzły grafu, narzędzia i frontend. Frontend czyta tylko klucz `wynik`. Wyniki weryfikatorów VAT i sankcji nie trafiają do stanu: płyną krawędziami grafu przez `scalenie_wynikow` do `finalizacja_i_scoring` (widać je w Dev UI jako wyjścia węzłów).
 
 **`analiza_umowy`**
 
 | Klucz | Zapisuje | Czyta |
 | --- | --- | --- |
-| `nazwa_pliku` | frontend przy tworzeniu sesji | `finalizuj` (`file_name` w rejestrze) |
-| `akapity` | `zapamietaj_tekst` | `sprawdz_sankcje`, `finalizuj` (cytaty, numery akapitów) |
+| `nazwa_pliku` | frontend przy tworzeniu sesji | `finalizacja_i_scoring` (`file_name` w rejestrze) |
+| `akapity` | `przygotowanie` | `weryfikator_vat`, `weryfikator_sankcji`, instrukcja audytora, `finalizacja_i_scoring` (cytaty, numery akapitów) |
+| `ekstrakcja` | ADK (`output_key` węzła `klasyfikacja_i_ekstrakcja`) | `weryfikator_vat`, `weryfikator_sankcji`, `finalizacja_i_scoring` |
 | `typ_umowy` | `pobierz_zasady` | nie jest dalej odczytywany (widoczny w Dev UI) |
-| `vat` | `sprawdz_vat` | `finalizuj` |
-| `sankcje` | `sprawdz_sankcje` | `finalizuj` |
-| `analiza` | ADK (`output_key`) | `finalizuj` |
-| `wynik` | `finalizuj` | frontend |
+| `ocena_klauzul` | ADK (`output_key` węzła `audytor_klauzul`) | `finalizacja_i_scoring` (gdy brak go w wejściu z `scalenie_wynikow`) |
+| `wynik` | `finalizacja_i_scoring` | frontend |
 
 **`rejestr_umow`**
 
 | Klucz | Zapisuje | Czyta |
 | --- | --- | --- |
-| `ostatni_sql` | `wykonaj_sql`, reset w `zapamietaj_pytanie` | `finalizuj` |
-| `wynik_llm` | ADK (`output_key`) | `finalizuj` |
-| `wynik` | `finalizuj` | frontend |
+| `ostatni_sql` | `wykonaj_sql`, reset w `przygotowanie_pytania` | `pobranie_umow` |
+| `wynik_llm` | ADK (`output_key`) | widoczny w Dev UI; `pobranie_umow` dostaje ten sam wynik jako wejście węzła |
+| `wynik` | `pobranie_umow` | frontend |
 
 ## 8. Konfiguracja
 
@@ -390,13 +440,13 @@ Zmienne środowiskowe z `.env` w katalogu głównym (ładowane w [core/config.py
 
 | Zmienna | Domyślnie | Znaczenie |
 | --- | --- | --- |
-| `GEMINI_MODEL` | `gemini-4-argon` | model obu agentów |
+| `GEMINI_MODEL` | `gemini-4-argon` | model wszystkich węzłów LLM |
 | `GOOGLE_GENAI_USE_VERTEXAI` | – | `TRUE` kieruje wywołania do Vertex AI (ustawione w `.env`) |
 | `GOOGLE_CLOUD_PROJECT`, `GOOGLE_CLOUD_LOCATION` | – | projekt i region Vertex AI; `GOOGLE_CLOUD_PROJECT` jest też domyślnym `BQ_PROJECT` |
 | `GOOGLE_APPLICATION_CREDENTIALS` | – | plik konta serwisowego dla Vertex AI i BigQuery |
 | `GEMINI_API_KEY` | – | klucz Gemini API, używany gdy Vertex AI jest wyłączony |
 | `GEMINI_TIMEOUT_MS` | `90000` | limit czasu jednego wywołania modelu |
-| `REJESTR_BACKEND` | `sqlite` | `sqlite` albo `bigquery`; wymaga restartu serwera |
+| `REJESTR_BACKEND` | `bigquery`, gdy jest `BQ_PROJECT`, inaczej `sqlite` | `sqlite` albo `bigquery`; wymaga restartu serwera |
 | `REJESTR_DB` | `data/rejestr.db` | ścieżka bazy SQLite (rejestr, zasady, sankcje, cache VAT) |
 | `BQ_PROJECT`, `BQ_DATASET`, `BQ_LOCATION` | `GOOGLE_CLOUD_PROJECT`, `rejestr_umow`, `EU` | lokalizacja tabeli BigQuery |
 
@@ -410,8 +460,9 @@ Baza SQLite tworzy się sama przy starcie serwera (`db.upewnij_sie()` w [server.
 | uszkodzony DOCX, pusty plik | `400` | alert |
 | plik powyżej 15 MB | `413` | alert |
 | chwilowy błąd Gemini (408/429/5xx) | do 3 prób w `google-genai`, potem wyjątek | zdarzenie `error` w SSE → krok „Błąd” i przycisk ponowienia |
-| model nie zwrócił wyniku zgodnego ze schematem | brak `state.analiza`/`wynik_llm`, `finalizuj` kończy bez wyniku | „Agent nie zwrócił wyniku.” |
+| model nie zwrócił wyniku zgodnego ze schematem | brak `state.ekstrakcja`/`wynik_llm`, ostatni węzeł kończy bez wyniku | „Agent nie zwrócił wyniku.” |
 | API MF niedostępne | plik `wiedza/vat_cache/<nip>.json`, gdy brak → `{"blad": ...}` | krok VAT na czerwono, brak ryzyk `ALL-VAT` z wykazu |
+| brak NIP kontrahenta w umowie | `weryfikator_vat` zwraca `{"blad": "brak NIP kontrahenta w umowie"}` bez zapytania do MF | krok VAT na czerwono, w werdykcie „nie sprawdzono” |
 | błędny SQL modelu (SQLite) | `{"blad": ...}` wraca do modelu, który może poprawić zapytanie | krok „błąd SQL” |
 | błąd zapisu do rejestru | analiza zwracana normalnie, `zapis_rejestru.ok = false` | wynik analizy bez zapisu |
 | rejestr niedostępny w `/api/rejestr` | `502` z nazwą backendu | komunikat zamiast tabeli |
@@ -429,7 +480,7 @@ Baza SQLite tworzy się sama przy starcie serwera (`db.upewnij_sie()` w [server.
 ```bash
 uv run uvicorn server:app --port 8001
 # frontend:      http://127.0.0.1:8001
-# ADK Dev UI:    http://127.0.0.1:8001/dev-ui/   (te same agenty, podgląd zdarzeń i stanu)
+# ADK Dev UI:    http://127.0.0.1:8001/dev-ui/   (te same agenty, graf workflow, podgląd zdarzeń i stanu)
 ```
 
 Wywołanie agenta z terminala przez HTTP (ta sama ścieżka co frontend):
@@ -446,7 +497,7 @@ curl -s http://127.0.0.1:8001/apps/rejestr_umow/users/demo/sessions/$SID \
   | python3 -c 'import json,sys; print(json.dumps(json.load(sys.stdin)["state"]["wynik"], ensure_ascii=False, indent=2))'
 ```
 
-Wywołanie bez HTTP: skrypty w [scripts/](../scripts/) używają `InMemoryRunner` bezpośrednio na `root_agent`, z pominięciem serwera, `AgentLoader` i SSE. Sekwencja agenta (callbacki, narzędzia, stan) jest taka sama.
+Wywołanie bez HTTP: skrypty w [scripts/](../scripts/) używają `InMemoryRunner(node=root_agent)` (workflow przekazuje się jako `node`, nie `agent`), z pominięciem serwera, `AgentLoader` i SSE. Sekwencja węzłów, narzędzia i stan są takie same.
 
 ```bash
 uv run python scripts/uruchom_analize.py wiedza/demo/umowa_demo_b2b.txt

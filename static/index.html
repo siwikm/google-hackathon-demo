@@ -74,8 +74,9 @@ button { font: inherit; color: inherit; }
 .tab { background: none; border: 0; border-radius: var(--radius); padding: var(--space-2xs) var(--space-sm); cursor: pointer; color: var(--color-white); white-space: nowrap; font-weight: 500; }
 .tab:hover { background: var(--color-graphite-2); }
 .tab[aria-selected="true"] { background: var(--color-lime); color: var(--color-graphite); font-weight: 800; }
-.file { margin-left: auto; display: flex; align-items: center; gap: var(--space-sm); color: var(--color-on-dark); min-width: 0; }
-.file b { color: var(--color-white); font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 28ch; }
+.file { display: flex; align-items: center; justify-content: space-between; gap: var(--space-sm); padding: var(--space-md) 0 var(--space-sm); border-bottom: 1px solid var(--color-rule); }
+.file-name { display: flex; align-items: baseline; gap: var(--space-2xs); min-width: 0; color: var(--color-muted); }
+.file b { color: var(--color-graphite); font-weight: 800; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .brandbar { height: 4px; background: linear-gradient(90deg, var(--color-lime) 0 72%, var(--color-sky) 72% 86%, var(--color-navy) 86% 100%); }
 
 .btn { background: var(--color-lime); color: var(--color-graphite); border: 0; border-radius: var(--radius); padding: var(--space-2xs) var(--space-sm); font-weight: 800; cursor: pointer; white-space: nowrap; }
@@ -87,8 +88,8 @@ button { font: inherit; color: inherit; }
 .btn-line:hover { border-color: var(--color-lime); background: var(--color-lime-2); }
 
 /* ---------- loader panel */
-.loader { background: var(--color-white); border-bottom: 1px solid var(--color-rule); }
-.loader-in { max-width: 1240px; margin: 0 auto; padding: var(--space-md); display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: var(--space-md); align-items: start; }
+.loader { background: var(--color-white); border: 1px solid var(--color-rule); border-radius: var(--radius-lg); margin-top: var(--space-sm); }
+.loader-in { padding: var(--space-md); display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: var(--space-md); align-items: start; }
 .loader h2 { font: 800 var(--text-sm) var(--font-ui); color: var(--color-graphite); margin: 0 0 var(--space-xs); }
 .samples { display: flex; flex-wrap: wrap; gap: var(--space-2xs); }
 .sample { border: 1px solid var(--color-rule); background: var(--color-fill); border-radius: var(--radius-pill); padding: var(--space-3xs) var(--space-sm); cursor: pointer; font-size: var(--text-sm); white-space: nowrap; }
@@ -359,7 +360,7 @@ body:not(.locked) > .login { display: none; }
 .login-card .fld input { padding: var(--space-xs) var(--space-sm); border-radius: var(--radius); font-size: var(--text-md); font-weight: 500; color: var(--color-ink); }
 .login-card .btn { width: 100%; margin-top: var(--space-md); }
 .login-card .hint { margin: var(--space-sm) 0 0; text-align: center; font-size: var(--text-xs); color: var(--color-muted); }
-.user { display: flex; align-items: center; gap: var(--space-2xs); flex: none; }
+.user { display: flex; align-items: center; gap: var(--space-2xs); flex: none; margin-left: auto; }
 .user .avatar { width: 42px; height: 42px; border-radius: 12px; display: grid; place-items: center; flex: none; background: var(--color-sky); color: var(--color-white); font: 800 16px/1 var(--font-ui); letter-spacing: -0.04em; }
 .user .uname { white-space: nowrap; color: var(--color-white); font-weight: 800; }
 .user .linkbtn { color: var(--color-on-dark); font-weight: 600; }
@@ -386,7 +387,6 @@ body:not(.locked) > .login { display: none; }
   .top-in { gap: var(--space-xs); padding: var(--space-xs) var(--space-sm); }
   .tabs { flex-wrap: wrap; }
   .tab { padding: var(--space-2xs) var(--space-xs); }
-  .file { margin-left: 0; width: 100%; justify-content: space-between; }
   main { padding: 0 var(--space-sm) var(--space-xl); }
   .verdict { grid-template-columns: minmax(0, 1fr); gap: var(--space-md); }
   .band { background: linear-gradient(120deg, var(--color-graphite) 0 78%, var(--color-lime) 78% 89%, var(--color-navy) 89% 100%); }
@@ -454,27 +454,11 @@ body:not(.locked) > .login { display: none; }
       <button class="tab" role="tab" aria-selected="false" data-view="rejestr">Rejestr umów</button>
       <button class="tab" role="tab" aria-selected="false" data-view="zasady">Zasady</button>
     </nav>
-    <div class="file"><b id="fileName">—</b><button class="btn" id="openLoader" aria-expanded="false" aria-controls="loader">Wczytaj umowę</button></div>
     <div class="user" id="user"><span class="avatar" id="userInitials" aria-hidden="true"></span><span class="uname" id="userName"></span>
       <button type="button" class="linkbtn" id="logout">Wyloguj</button></div>
   </div>
   <div class="brandbar"></div>
 </header>
-
-<div class="loader" id="loader" hidden>
-  <div class="loader-in">
-    <div>
-      <h2>Przykładowe umowy</h2>
-      <div class="samples" id="samples"></div>
-    </div>
-    <div class="upload">
-      <h2>Własny plik</h2>
-      <input type="file" id="file" accept=".txt,.md,.docx">
-      <label for="file" class="btn-line">Wybierz plik z dysku</label>
-      <span class="hint">TXT lub DOCX, do 15 MB</span>
-    </div>
-  </div>
-</div>
 
 <main>
 <!-- =========================================== PULPIT (makieta na prezentację: dane w PULPIT_MOCK) -->
@@ -495,6 +479,24 @@ body:not(.locked) > .login { display: none; }
 
 <!-- =========================================== ANALIZA -->
 <section id="analiza" hidden>
+  <div class="file">
+    <div class="file-name">Umowa: <b id="fileName">—</b></div>
+    <button class="btn" id="openLoader" aria-expanded="false" aria-controls="loader">Wczytaj umowę</button>
+  </div>
+  <div class="loader" id="loader" hidden>
+    <div class="loader-in">
+      <div>
+        <h2>Przykładowe umowy</h2>
+        <div class="samples" id="samples"></div>
+      </div>
+      <div class="upload">
+        <h2>Własny plik</h2>
+        <input type="file" id="file" accept=".txt,.md,.docx">
+        <label for="file" class="btn-line">Wybierz plik z dysku</label>
+        <span class="hint">TXT lub DOCX, do 15 MB</span>
+      </div>
+    </div>
+  </div>
   <div class="verdict" id="verdict"></div>
   <div class="terms" id="terms" hidden></div>
   <article class="doc" id="doc"></article>
@@ -602,11 +604,10 @@ async function runAgent(app, text, state, onEvent) {
   return (await api(`/apps/${app}/users/${USER}/sessions/${session.id}`)).state || {};
 }
 
-// Live list of agent steps, fed from the SSE stream.
+// Live list of agent steps, fed from the SSE stream: tool calls of the LLM nodes (STEP_*)
+// and output events of the deterministic workflow nodes (NODE_RESULT).
 const STEP_LABEL = {
   pobierz_zasady: (a) => ["Zasady Grupy Pelion", `typ umowy: ${a.typ_umowy || "?"}`],
-  sprawdz_vat: (a) => ["Wykaz podatników VAT MF", `NIP ${a.nip || "—"} · rachunki: ${(a.rachunki || []).length}`],
-  sprawdz_sankcje: (a) => ["Lista sankcyjna MSWiA", `${(a.nazwy || []).length} nazw i cały tekst umowy`],
   schemat_rejestru: () => ["Schemat rejestru", "kolumny i zasady"],
   wykonaj_sql: (a) => ["Zapytanie SQL", a.zapytanie || ""],
   execute_sql: (a) => ["BigQuery SQL", a.query || ""],
@@ -615,7 +616,13 @@ const STEP_LABEL = {
 };
 const STEP_RESULT = {
   pobierz_zasady: (r) => [`${(r.zasady || []).length} zasad`, false],
-  sprawdz_vat: (r) => {
+  wykonaj_sql: (r) => r.blad ? [`błąd SQL: ${r.blad}`, true] : [`${r.liczba} wierszy`, false],
+  execute_sql: (r) => r.status === "ERROR" ? [`błąd: ${r.error_details}`, true] : [`${(r.rows || []).length} wierszy`, false],
+  znajdz_odstepstwa: (r) => [`${r.liczba} umów z odstępstwami`, false],
+  schemat_rejestru: (r) => [`backend: ${r.backend}`, false],
+};
+const NODE_RESULT = {
+  weryfikator_vat: (r) => {
     if (r.blad) return [r.blad, true];
     const acc = r.rachunki || [];
     const badAcc = acc.some((x) => !x.na_liscie);
@@ -624,13 +631,10 @@ const STEP_RESULT = {
     return [`${r.nazwa || `NIP ${r.nip}`} · ${r.status_vat || "brak w wykazie"} · ${rach}`,
       r.status_vat !== "Czynny" || badAcc];
   },
-  sprawdz_sankcje: (r) => (r.trafienia || []).length
+  weryfikator_sankcji: (r) => (r.trafienia || []).length
     ? [`trafienie: ${r.trafienia.map((h) => h.nazwa_na_liscie).join(", ")}`, true] : ["brak trafień", false],
-  wykonaj_sql: (r) => r.blad ? [`błąd SQL: ${r.blad}`, true] : [`${r.liczba} wierszy`, false],
-  execute_sql: (r) => r.status === "ERROR" ? [`błąd: ${r.error_details}`, true] : [`${(r.rows || []).length} wierszy`, false],
-  znajdz_odstepstwa: (r) => [`${r.liczba} umów z odstępstwami`, false],
-  schemat_rejestru: (r) => [`backend: ${r.backend}`, false],
 };
+const nodeName = (ev) => (ev.nodeInfo?.path || "").split("/").pop().split("@")[0];
 function steps(ul, thinking = ["Gemini porównuje zapisy z zasadami", "pisze raport z cytatami"]) {
   ul.innerHTML = "";
   const items = {};
@@ -649,6 +653,16 @@ function steps(ul, thinking = ["Gemini porównuje zapisy z zasadami", "pisze rap
   return {
     start(k, v) { add("model", k, v); },
     event(ev) {
+      const node = ev.output != null ? nodeName(ev) : null;
+      if (node === "klasyfikacja_i_ekstrakcja") {
+        // extraction done: the VAT and sanctions nodes start in parallel with the clause audit
+        const o = ev.output;
+        finish("model", `typ umowy: ${o.typ_umowy || "?"} · strony: ${(o.strony || []).length}`);
+        add("weryfikator_vat", "Wykaz podatników VAT MF", "NIP kontrahenta i rachunki z umowy");
+        add("weryfikator_sankcji", "Lista sankcyjna MSWiA", `${(o.strony || []).length + (o.osoby || []).length} nazw i cały tekst umowy`);
+      } else if (NODE_RESULT[node]) {
+        finish(node, ...NODE_RESULT[node](ev.output));
+      }
       for (const part of ev.content?.parts || []) {
         if (part.functionCall) {
           const fc = part.functionCall;
@@ -950,6 +964,7 @@ async function analyze() {
 function setDoc(d) {
   doc = d; result = null;
   $("fileName").textContent = d.nazwa;
+  $("fileName").title = d.nazwa;
   toggleLoader(false);
   renderIdle();
   renderDoc();
@@ -1279,7 +1294,7 @@ $("rulesSession").addEventListener("click", (e) => {
 function renderRules() {
   if (!ZASADY_LISTA.length) { $("rules").innerHTML = `<p class="errbox">Nie udało się pobrać zasad.</p>`; return; }
   const zmienione = ZASADY_LISTA.filter((z) => EDYCJE[z.id]).length;
-  $("rulesSession").innerHTML = `<span>Edycja działa tylko w tej karcie przeglądarki: agent i kod nadal używają oryginalnych zasad.${
+  $("rulesSession").innerHTML = `<span>${
     zmienione ? ` Zmienione w tej sesji: <b>${zmienione}</b>.` : ""}</span>${
     zmienione ? `<button type="button" class="linkbtn" data-act="reset-all">Przywróć wszystkie</button>` : ""}`;
   const count = (m) => ZASADY_LISTA.filter((z) => z.metoda === m).length;
