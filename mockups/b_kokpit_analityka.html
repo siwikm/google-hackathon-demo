@@ -1,0 +1,455 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Mockup B · Kokpit analityka</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+/* Hallmark · genre: modern-minimal · macrostructure: Workbench (app: three-pane inspector) · theme: Cobalt
+ * tone: technical, instrument panel · anchor hue: cobalt 256 · signal: risk red 27
+ * Hallmark · pre-emit critique: P4 H5 E4 S5 R4 V5
+ */
+:root {
+  --color-paper:    oklch(98.5% 0.004 250);
+  --color-paper-2:  oklch(96.5% 0.006 252);
+  --color-ink:      oklch(24% 0.02 258);
+  --color-ink-2:    oklch(36% 0.018 257);
+  --color-muted:    oklch(53% 0.015 257);
+  --color-rule:     oklch(90.5% 0.008 255);
+  --color-accent:   oklch(58% 0.2 256);
+  --color-accent-2: oklch(95.5% 0.03 256);
+  --color-graphite: oklch(22% 0.016 260);
+  --color-graph-2:  oklch(30% 0.016 260);
+  --color-code:     oklch(90% 0.01 255);
+  --color-code-dim: oklch(66% 0.015 257);
+  --color-code-key: oklch(76% 0.13 256);
+  --color-risk:     oklch(54% 0.19 27);
+  --color-risk-2:   oklch(96% 0.025 27);
+  --color-risk-mk:  oklch(90% 0.06 27);
+  --color-ok:       oklch(54% 0.12 155);
+  --color-ok-2:     oklch(95.5% 0.03 155);
+  --color-warn:     oklch(70% 0.14 75);
+  --color-focus:    oklch(58% 0.2 256);
+
+  --font-display: "Space Grotesk", system-ui, sans-serif;
+  --font-body:    "Inter", system-ui, sans-serif;
+  --font-mono:    "JetBrains Mono", ui-monospace, monospace;
+
+  --space-3xs: 0.25rem; --space-2xs: 0.5rem; --space-xs: 0.75rem; --space-sm: 1rem;
+  --space-md: 1.5rem; --space-lg: 2rem; --space-xl: 3rem;
+  --text-2xs: 0.6875rem; --text-xs: 0.75rem; --text-sm: 0.8125rem; --text-md: 0.9375rem;
+  --text-lg: 1.125rem; --text-xl: 1.5rem; --text-num: 3.75rem;
+
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --dur-short: 180ms;
+  --radius: 6px; --radius-card: 10px;
+  --head-h: 56px;
+}
+* { box-sizing: border-box; }
+html, body { overflow-x: clip; }
+body { margin: 0; background: var(--color-paper); color: var(--color-ink); font: 400 var(--text-md)/1.55 var(--font-body); }
+button { font: inherit; color: inherit; }
+:focus-visible { outline: 2px solid var(--color-focus); outline-offset: 2px; }
+[hidden] { display: none !important; }
+.mono { font-family: var(--font-mono); }
+.label { font: 500 var(--text-2xs)/1 var(--font-mono); text-transform: uppercase; letter-spacing: 0.06em; color: var(--color-muted); }
+
+/* ---------- bar */
+.bar { height: var(--head-h); border-bottom: 1px solid var(--color-rule); display: flex; align-items: center; gap: var(--space-md); padding: 0 var(--space-md); background: var(--color-paper); position: sticky; top: 0; z-index: 3; }
+.wm { font: 600 var(--text-lg)/1 var(--font-display); letter-spacing: -0.02em; white-space: nowrap; }
+.wm i { font-style: normal; color: var(--color-accent); }
+.tabs { display: flex; gap: var(--space-3xs); }
+.tab { background: none; border: 1px solid transparent; border-radius: var(--radius); padding: var(--space-3xs) var(--space-xs); color: var(--color-muted); cursor: pointer; white-space: nowrap; }
+.tab:hover { color: var(--color-ink); }
+.tab[aria-selected="true"] { color: var(--color-ink); border-color: var(--color-rule); background: var(--color-paper-2); }
+.runchip { margin-left: auto; font: 400 var(--text-xs) var(--font-mono); color: var(--color-muted); white-space: nowrap; }
+.runchip b { color: var(--color-ink); font-weight: 500; }
+.btn { background: var(--color-accent); color: var(--color-paper); border: 0; border-radius: var(--radius); padding: var(--space-2xs) var(--space-sm); font-weight: 600; cursor: pointer; white-space: nowrap; }
+.btn:hover { background: oklch(52% 0.2 256); }
+.btn:active { transform: translateY(1px); }
+.btn-ghost { background: none; border: 1px solid var(--color-rule); border-radius: var(--radius); padding: var(--space-2xs) var(--space-sm); cursor: pointer; white-space: nowrap; }
+.btn-ghost:hover { border-color: var(--color-accent); }
+
+/* ---------- three panes */
+.panes { display: grid; grid-template-columns: 260px minmax(0, 1fr) 400px; height: calc(100vh - var(--head-h)); }
+.pane { overflow: auto; min-width: 0; }
+.left { border-right: 1px solid var(--color-rule); padding: var(--space-md) var(--space-sm); background: var(--color-paper-2); }
+.right { border-left: 1px solid var(--color-rule); padding: var(--space-md); }
+
+.steps { list-style: none; margin: var(--space-xs) 0 var(--space-lg); padding: 0; }
+.steps li { display: grid; grid-template-columns: 1.1rem minmax(0, 1fr); gap: var(--space-2xs); padding: var(--space-2xs) 0; font-size: var(--text-sm); }
+.steps .ic { font: 600 var(--text-xs)/1.6 var(--font-mono); color: var(--color-ok); }
+.steps .ic.bad { color: var(--color-risk); }
+.steps .fn { font: 500 var(--text-xs)/1.5 var(--font-mono); color: var(--color-ink); overflow-wrap: anywhere; }
+.steps .res { color: var(--color-muted); font-size: var(--text-xs); }
+.steps .res.bad { color: var(--color-risk); }
+
+.outline { list-style: none; margin: var(--space-xs) 0 0; padding: 0; }
+.outline button { width: 100%; display: grid; grid-template-columns: 2.2rem minmax(0, 1fr) 0.5rem; gap: var(--space-2xs); align-items: center; background: none; border: 0; border-radius: var(--radius); padding: var(--space-3xs) var(--space-2xs); text-align: left; cursor: pointer; font-size: var(--text-sm); }
+.outline button:hover { background: var(--color-paper); }
+.outline .no { font: 500 var(--text-xs) var(--font-mono); color: var(--color-muted); }
+.outline .t { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.pip { width: 0.5rem; height: 0.5rem; border-radius: 50%; background: var(--color-rule); }
+.pip.ok { background: var(--color-ok); } .pip.bad { background: var(--color-risk); }
+
+/* ---------- document */
+.center { position: relative; }
+.docwrap { display: grid; grid-template-columns: 14px minmax(0, 1fr); gap: var(--space-md); padding: var(--space-lg) var(--space-lg) var(--space-xl); max-width: 860px; margin: 0 auto; }
+.rail { position: sticky; top: var(--space-lg); height: calc(100vh - var(--head-h) - 2 * var(--space-lg)); border-radius: 7px; background: var(--color-paper-2); border: 1px solid var(--color-rule); }
+.tick { position: absolute; left: 1px; right: 1px; height: 6px; border-radius: 3px; background: var(--color-risk); border: 0; padding: 0; cursor: pointer; }
+.tick.ok { background: var(--color-ok); height: 3px; opacity: 0.7; pointer-events: none; }
+.doc h1 { font: 600 var(--text-xl)/1.25 var(--font-display); letter-spacing: -0.02em; margin: 0; }
+.doc .meta { color: var(--color-muted); margin-top: var(--space-3xs); }
+.parties { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); border: 1px solid var(--color-rule); border-radius: var(--radius-card); margin: var(--space-md) 0; }
+.party { padding: var(--space-sm); font-size: var(--text-sm); }
+.party + .party { border-left: 1px solid var(--color-rule); }
+.party .nm { font-weight: 600; font-size: var(--text-md); margin: var(--space-2xs) 0 var(--space-3xs); }
+.party .id { font: 400 var(--text-xs) var(--font-mono); color: var(--color-ink-2); }
+.sec { padding: var(--space-sm) 0; border-top: 1px solid var(--color-rule); scroll-margin-top: var(--space-md); }
+.sec h2 { font: 600 var(--text-md)/1.4 var(--font-display); margin: 0 0 var(--space-2xs); display: flex; gap: var(--space-2xs); align-items: baseline; }
+.sec h2 .no { font: 500 var(--text-xs) var(--font-mono); color: var(--color-muted); min-width: 2.2rem; }
+.sec h2 .chk { margin-left: auto; font: 500 var(--text-2xs) var(--font-mono); color: var(--color-ok); background: var(--color-ok-2); border-radius: var(--radius); padding: 2px 6px; white-space: nowrap; }
+.sec h2 .chk.bad { color: var(--color-risk); background: var(--color-risk-2); }
+.cl { display: grid; grid-template-columns: 2.2rem minmax(0, 1fr); gap: var(--space-2xs); margin: 0 0 var(--space-2xs); color: var(--color-ink-2); }
+.cl .n { font: 400 var(--text-xs)/1.9 var(--font-mono); color: var(--color-muted); }
+.cl.sub { grid-template-columns: 2.2rem 1.6rem minmax(0, 1fr); }
+.cl.sub::before { content: ""; }
+mark { background: var(--color-risk-mk); color: var(--color-ink); border-radius: 3px; padding: 0.05em 0.15em; cursor: pointer; box-decoration-break: clone; -webkit-box-decoration-break: clone; }
+mark:hover, mark.on { background: var(--color-risk); color: var(--color-paper); }
+.flash { animation: flash 1.4s var(--ease-out); }
+@keyframes flash { 0%, 35% { box-shadow: 0 0 0 3px var(--color-accent); } 100% { box-shadow: 0 0 0 3px transparent; } }
+
+/* ---------- inspector */
+.score { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: var(--space-sm); align-items: end; margin-top: var(--space-xs); }
+.score .n { font: 700 var(--text-num)/0.85 var(--font-display); letter-spacing: -0.04em; color: var(--color-risk); font-variant-numeric: tabular-nums; }
+.score .lv { font: 600 var(--text-md) var(--font-display); }
+.score .why { font-size: var(--text-xs); color: var(--color-muted); }
+.meter { height: 8px; border-radius: 4px; background: var(--color-paper-2); border: 1px solid var(--color-rule); margin: var(--space-sm) 0 var(--space-2xs); overflow: hidden; }
+.meter span { display: block; height: 100%; background: var(--color-risk); }
+.parts { width: 100%; border-collapse: collapse; font-size: var(--text-xs); }
+.parts td { padding: var(--space-3xs) 0; border-top: 1px solid var(--color-rule); }
+.parts td:last-child { text-align: right; font-family: var(--font-mono); font-variant-numeric: tabular-nums; }
+.block { margin-top: var(--space-lg); }
+.risks { list-style: none; padding: 0; margin: var(--space-xs) 0 0; }
+.risk { width: 100%; display: grid; grid-template-columns: auto minmax(0, 1fr) auto; gap: var(--space-2xs); align-items: center; text-align: left; background: none; border: 1px solid var(--color-rule); border-radius: var(--radius); padding: var(--space-2xs) var(--space-xs); cursor: pointer; margin-bottom: var(--space-2xs); transition: border-color var(--dur-short) var(--ease-out); }
+.risk:hover { border-color: var(--color-ink-2); }
+.risk[aria-pressed="true"] { border-color: var(--color-risk); background: var(--color-risk-2); }
+.risk .lvl { font: 600 var(--text-2xs) var(--font-mono); color: var(--color-risk); border: 1px solid currentColor; border-radius: 4px; padding: 1px 5px; }
+.risk .tt { font-weight: 600; font-size: var(--text-sm); }
+.risk .rid { font: 400 var(--text-xs) var(--font-mono); color: var(--color-muted); }
+.detail p { margin: var(--space-xs) 0 0; font-size: var(--text-sm); }
+.detail .quote { border-left: 2px solid var(--color-risk); padding-left: var(--space-xs); color: var(--color-ink-2); }
+.detail .rec b { font-weight: 600; }
+.code { margin-top: var(--space-sm); background: var(--color-graphite); color: var(--color-code); border-radius: var(--radius-card); font: 400 var(--text-xs)/1.65 var(--font-mono); overflow: hidden; box-shadow: 0 1px 2px oklch(22% 0.016 260 / 0.25); }
+.code-h { display: flex; gap: var(--space-2xs); align-items: center; padding: var(--space-2xs) var(--space-xs); border-bottom: 1px solid var(--color-graph-2); color: var(--color-code-dim); }
+.code-h .m { color: var(--color-code-key); font-weight: 600; }
+.code-h .u { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; flex: 1; }
+.code-h .st { color: var(--color-ok-2); background: oklch(40% 0.08 155); border-radius: 4px; padding: 0 6px; flex: none; }
+.code pre { margin: 0; padding: var(--space-xs); white-space: pre-wrap; overflow-wrap: anywhere; }
+.code .k { color: var(--color-code-key); } .code .d { color: var(--color-code-dim); } .code .x { color: oklch(78% 0.13 27); }
+.who { width: 100%; border-collapse: collapse; font-size: var(--text-sm); margin-top: var(--space-xs); }
+.who td { padding: var(--space-2xs) 0; border-top: 1px solid var(--color-rule); vertical-align: top; }
+.who .r { color: var(--color-muted); font-size: var(--text-xs); }
+.tag { font: 500 var(--text-2xs) var(--font-mono); padding: 2px 6px; border-radius: 4px; white-space: nowrap; }
+.tag.ok { color: var(--color-ok); background: var(--color-ok-2); }
+.tag.bad { color: var(--color-risk); background: var(--color-risk-2); }
+
+/* ---------- registry */
+.reg { display: grid; grid-template-columns: 380px minmax(0, 1fr); height: calc(100vh - var(--head-h)); }
+.reg .ask { border-right: 1px solid var(--color-rule); padding: var(--space-md); overflow: auto; background: var(--color-paper-2); }
+.field { display: flex; gap: var(--space-2xs); margin-top: var(--space-xs); }
+.field textarea { flex: 1; min-width: 0; min-height: 4.5rem; resize: vertical; font: 400 var(--text-md)/1.45 var(--font-body); border: 1px solid var(--color-rule); border-radius: var(--radius); padding: var(--space-2xs) var(--space-xs); background: var(--color-paper); color: var(--color-ink); }
+.field textarea:focus-visible { outline: 2px solid var(--color-focus); outline-offset: 0; border-color: transparent; }
+.chips { display: flex; flex-direction: column; gap: var(--space-3xs); margin-top: var(--space-xs); }
+.chip { text-align: left; background: none; border: 0; padding: var(--space-3xs) 0; color: var(--color-ink-2); cursor: pointer; font-size: var(--text-sm); }
+.chip:hover { color: var(--color-accent); text-decoration: underline; text-underline-offset: 3px; }
+.ans { margin-top: var(--space-lg); font-size: var(--text-sm); }
+.ans p { margin: var(--space-xs) 0 0; }
+.matrix-wrap { overflow: auto; padding: var(--space-md); }
+.matrix { border-collapse: separate; border-spacing: 0; font-size: var(--text-sm); min-width: 760px; width: 100%; }
+.matrix th { font: 500 var(--text-2xs) var(--font-mono); text-transform: uppercase; letter-spacing: 0.05em; color: var(--color-muted); text-align: center; padding: var(--space-2xs) var(--space-3xs); border-bottom: 1px solid var(--color-ink); white-space: nowrap; }
+.matrix th:first-child { text-align: left; }
+.matrix td { border-bottom: 1px solid var(--color-rule); padding: var(--space-2xs) var(--space-3xs); text-align: center; }
+.matrix td:first-child { text-align: left; position: sticky; left: 0; background: var(--color-paper); min-width: 230px; }
+.matrix .fn { font: 400 var(--text-xs) var(--font-mono); color: var(--color-muted); }
+.matrix .st { font: 500 var(--text-2xs) var(--font-mono); color: var(--color-muted); }
+.matrix tr.hit td { background: var(--color-risk-2); }
+.c { display: inline-block; width: 0.75rem; height: 0.75rem; border-radius: 50%; vertical-align: middle; }
+.c.g { background: var(--color-ok); } .c.y { background: var(--color-warn); } .c.r { background: var(--color-risk); } .c.n { background: none; border: 1px solid var(--color-rule); width: 0.4rem; height: 0.4rem; }
+.legend { display: flex; gap: var(--space-md); font-size: var(--text-xs); color: var(--color-muted); margin-top: var(--space-sm); flex-wrap: wrap; }
+.legend span { display: inline-flex; gap: var(--space-3xs); align-items: center; }
+
+@media (max-width: 1180px) {
+  .panes { grid-template-columns: 220px minmax(0, 1fr); height: auto; }
+  .pane { overflow: visible; }
+  .right { grid-column: 1 / -1; border-left: 0; border-top: 1px solid var(--color-rule); }
+  .rail { height: 60vh; }
+}
+@media (max-width: 760px) {
+  .bar { flex-wrap: wrap; height: auto; padding: var(--space-2xs) var(--space-sm); gap: var(--space-xs); position: static; }
+  .runchip { margin-left: 0; order: 3; width: 100%; }
+  .panes, .reg { grid-template-columns: minmax(0, 1fr); height: auto; }
+  .left { border-right: 0; border-bottom: 1px solid var(--color-rule); }
+  .docwrap { grid-template-columns: minmax(0, 1fr); padding: var(--space-md) var(--space-sm); }
+  .rail { display: none; }
+  .parties { grid-template-columns: minmax(0, 1fr); }
+  .party + .party { border-left: 0; border-top: 1px solid var(--color-rule); }
+  .right { padding: var(--space-md) var(--space-sm); }
+  .reg .ask { border-right: 0; border-bottom: 1px solid var(--color-rule); }
+  .matrix-wrap { padding: var(--space-sm); }
+}
+@media (prefers-reduced-motion: reduce) { .flash { animation: none; box-shadow: 0 0 0 3px var(--color-accent); } .risk { transition: none; } }
+</style>
+</head>
+<body>
+
+<header class="bar">
+  <div class="wm">Weryfikacja umów<i>.</i></div>
+  <nav class="tabs" role="tablist">
+    <button class="tab" role="tab" aria-selected="true" data-view="analiza">Analiza umowy</button>
+    <button class="tab" role="tab" aria-selected="false" data-view="rejestr">Rejestr umów</button>
+  </nav>
+  <div class="runchip"><b>umowa_demo_b2b.docx</b> · gemini-4-argon · Vertex AI · ADK</div>
+  <button class="btn">Nowa analiza</button>
+</header>
+
+<!-- =========================================== ANALIZA -->
+<div class="panes" id="analiza">
+  <aside class="pane left">
+    <div class="label">Przebieg agenta</div>
+    <ol class="steps">
+      <li><span class="ic">✓</span><span><span class="fn">pobierz_zasady("B2B")</span><br><span class="res">6 zasad Grupy Pelion</span></span></li>
+      <li><span class="ic bad">✗</span><span><span class="fn">sprawdz_vat("5260250274", 1 rachunek)</span><br><span class="res bad">Czynny · rachunek spoza wykazu</span></span></li>
+      <li><span class="ic bad">✗</span><span><span class="fn">sprawdz_sankcje(6 nazw + tekst)</span><br><span class="res bad">trafienie: REISS Błażej Bernard</span></span></li>
+      <li><span class="ic">✓</span><span><span class="fn">score + zapis do rejestru</span><br><span class="res">100 · sqlite · NOWA_ANALIZA</span></span></li>
+    </ol>
+    <div class="label">Struktura umowy</div>
+    <ul class="outline">
+      <li><button data-goto="s1"><span class="no">§ 1</span><span class="t">Przedmiot umowy</span><span class="pip"></span></button></li>
+      <li><button data-goto="s2"><span class="no">§ 2</span><span class="t">Okres i wypowiedzenie</span><span class="pip"></span></button></li>
+      <li><button data-goto="s3"><span class="no">§ 3</span><span class="t">Wynagrodzenie i płatności</span><span class="pip bad"></span></button></li>
+      <li><button data-goto="s4"><span class="no">§ 4</span><span class="t">Prawa autorskie</span><span class="pip ok"></span></button></li>
+      <li><button data-goto="s5"><span class="no">§ 5</span><span class="t">Zakaz konkurencji</span><span class="pip ok"></span></button></li>
+      <li><button data-goto="s6"><span class="no">§ 6</span><span class="t">Podwykonawcy</span><span class="pip bad"></span></button></li>
+      <li><button data-goto="s7"><span class="no">§ 7</span><span class="t">Kary umowne</span><span class="pip ok"></span></button></li>
+      <li><button data-goto="s8"><span class="no">§ 8</span><span class="t">Poufność i dane osobowe</span><span class="pip"></span></button></li>
+      <li><button data-goto="s9"><span class="no">§ 9</span><span class="t">Prawo i sąd</span><span class="pip ok"></span></button></li>
+      <li><button data-goto="s10"><span class="no">§ 10</span><span class="t">Postanowienia końcowe</span><span class="pip"></span></button></li>
+    </ul>
+  </aside>
+
+  <main class="pane center" id="docpane">
+    <div class="docwrap">
+      <div class="rail" id="rail" aria-label="Mapa ryzyk w dokumencie"></div>
+      <article class="doc" id="doc">
+        <h1>Umowa o świadczenie usług B2B nr 47/KSEF/2026</h1>
+        <div class="meta">Zawarta 16 listopada 2026 r. w Łodzi</div>
+        <div class="parties">
+          <div class="party"><span class="label">Zleceniodawca</span><div class="nm">epruf S.A.</div>ul. Zbąszyńska 3, 91-342 Łódź<br><span class="id">NIP 9471958279 · KRS 0000319410</span></div>
+          <div class="party"><span class="label">Zleceniobiorca</span><div class="nm">MINISTERSTWO FINANSÓW</div>ul. Świętokrzyska 12, 00-916 Warszawa<br><span class="id">NIP 5260250274 · REGON 000002217</span></div>
+        </div>
+
+        <section class="sec" id="s1"><h2><span class="no">§ 1</span>Przedmiot umowy</h2>
+          <p class="cl"><span class="n">1.</span><span>Zleceniobiorca zobowiązuje się do przeprowadzenia cyklu szkoleń oraz świadczenia wsparcia wdrożeniowego w zakresie Krajowego Systemu e-Faktur (KSeF) dla zespołów finansowych i IT Zleceniodawcy.</span></p>
+          <p class="cl"><span class="n">2.</span><span>Szczegółowy harmonogram szkoleń i warsztatów stanowi Załącznik nr 1 do Umowy.</span></p></section>
+
+        <section class="sec" id="s2"><h2><span class="no">§ 2</span>Okres obowiązywania i wypowiedzenie</h2>
+          <p class="cl"><span class="n">1.</span><span>Umowa zostaje zawarta na czas nieokreślony od dnia 1 grudnia 2026 r.</span></p>
+          <p class="cl"><span class="n">2.</span><span>Każda ze Stron może wypowiedzieć Umowę z zachowaniem 3-miesięcznego okresu wypowiedzenia ze skutkiem na koniec miesiąca kalendarzowego.</span></p></section>
+
+        <section class="sec" id="s3"><h2><span class="no">§ 3</span>Wynagrodzenie i płatności<span class="chk bad">ALL-VAT</span></h2>
+          <p class="cl"><span class="n">1.</span><span>Z tytułu realizacji Umowy Zleceniobiorcy przysługuje wynagrodzenie ryczałtowe w wysokości 45 000 PLN netto miesięcznie, powiększone o należny podatek VAT.</span></p>
+          <p class="cl"><span class="n">2.</span><span>Wynagrodzenie płatne będzie w terminie 14 dni od dnia doręczenia prawidłowo wystawionej faktury VAT, na podstawie zaakceptowanego przez Zleceniodawcę miesięcznego protokołu odbioru.</span></p>
+          <p class="cl"><span class="n">3.</span><span>Zapłata nastąpi przelewem na rachunek bankowy Zleceniobiorcy nr <mark id="mark-R2" data-risk="R2">PL 50 1140 2004 0000 3102 7865 4321</mark>.</span></p>
+          <p class="cl"><span class="n">4.</span><span>Zmiana rachunku bankowego wymaga aneksu w formie pisemnej pod rygorem nieważności.</span></p></section>
+
+        <section class="sec" id="s4"><h2><span class="no">§ 4</span>Przeniesienie praw autorskich<span class="chk">B2B-IP ✓</span></h2>
+          <p class="cl"><span class="n"></span><span>W ramach wynagrodzenia, o którym mowa w § 3, Zleceniobiorca przenosi na Zleceniodawcę autorskie prawa majątkowe do wszelkich materiałów szkoleniowych, dokumentacji i kodu powstałych w ramach realizacji Umowy, na wszystkich polach eksploatacji, z chwilą podpisania miesięcznego protokołu odbioru prac.</span></p></section>
+
+        <section class="sec" id="s5"><h2><span class="no">§ 5</span>Zakaz konkurencji<span class="chk">B2B-ZAKAZ ✓</span></h2>
+          <p class="cl"><span class="n"></span><span>Zleceniobiorca zobowiązuje się, że w okresie obowiązywania Umowy oraz przez okres 12 miesięcy od jej rozwiązania nie będzie świadczył usług wdrożeniowych w zakresie KSeF na rzecz podmiotów bezpośrednio konkurencyjnych wobec epruf S.A. ani Grupy Pelion.</span></p></section>
+
+        <section class="sec" id="s6"><h2><span class="no">§ 6</span>Podwykonawcy<span class="chk bad">ALL-SANKCJE</span></h2>
+          <p class="cl"><span class="n">1.</span><span>Zleceniobiorca może powierzyć wykonanie części usług wyłącznie podwykonawcom wskazanym poniżej, za których działania lub zaniechania odpowiada jak za własne:</span></p>
+          <p class="cl sub"><span></span><span class="n">a)</span><span>Akademia Kompetencji Cyfrowych Sp. z o.o. z siedzibą w Krakowie – przygotowanie materiałów szkoleniowych i platformy e-learningowej;</span></p>
+          <p class="cl sub"><span></span><span class="n">b)</span><span><mark id="mark-R1" data-risk="R1">Błażej Reiss, prowadzący jednoosobową działalność gospodarczą</mark> – prowadzenie warsztatów stacjonarnych dla zespołów księgowych w Łodzi;</span></p>
+          <p class="cl sub"><span></span><span class="n">c)</span><span>DataBridge Consulting Sp. z o.o. z siedzibą w Poznaniu – wsparcie techniczne integracji z API KSeF.</span></p>
+          <p class="cl"><span class="n">2.</span><span>Zmiana lub dodanie podwykonawcy wymaga uprzedniej pisemnej zgody Zleceniodawcy.</span></p></section>
+
+        <section class="sec" id="s7"><h2><span class="no">§ 7</span>Kary umowne<span class="chk">B2B-KARY ✓</span></h2>
+          <p class="cl"><span class="n">1.</span><span>W przypadku opóźnienia w realizacji szkolenia wskazanego w harmonogramie Zleceniobiorca zapłaci karę umowną w wysokości 1 000 PLN za każdy dzień opóźnienia.</span></p>
+          <p class="cl"><span class="n">2.</span><span>Łączny limit kar umownych nałożonych na Zleceniobiorcę nie może przekroczyć 10% wartości całkowitego wynagrodzenia netto wypłaconego na podstawie Umowy.</span></p></section>
+
+        <section class="sec" id="s8"><h2><span class="no">§ 8</span>Poufność i dane osobowe</h2>
+          <p class="cl"><span class="n">1.</span><span>Zleceniobiorca zobowiązuje się zachować w tajemnicy wszelkie informacje uzyskane w związku z realizacją Umowy.</span></p>
+          <p class="cl"><span class="n">2.</span><span>W zakresie, w jakim realizacja Umowy wymagać będzie przetwarzania danych osobowych, Strony zawrą odrębną umowę powierzenia przetwarzania danych zgodną z art. 28 RODO.</span></p></section>
+
+        <section class="sec" id="s9"><h2><span class="no">§ 9</span>Prawo i sąd właściwy<span class="chk">B2B-SAD ✓</span></h2>
+          <p class="cl"><span class="n"></span><span>Umowa podlega prawu polskiemu. Wszelkie spory będą rozstrzygane przez sąd powszechny właściwy miejscowo dla siedziby Zleceniodawcy w Łodzi.</span></p></section>
+
+        <section class="sec" id="s10"><h2><span class="no">§ 10</span>Postanowienia końcowe</h2>
+          <p class="cl"><span class="n"></span><span>Umowę sporządzono w dwóch jednobrzmiących egzemplarzach, po jednym dla każdej ze Stron.</span></p></section>
+      </article>
+    </div>
+  </main>
+
+  <aside class="pane right">
+    <div class="label">Score ryzyka</div>
+    <div class="score">
+      <div class="n">100</div>
+      <div><div class="lv">Krytyczne · nie podpisywać</div><div class="why">Trafienie sankcyjne ustawia score na 100 niezależnie od sumy wag.</div></div>
+    </div>
+    <div class="meter"><span style="width:100%"></span></div>
+    <table class="parts">
+      <tr><td>ALL-SANKCJE · krytyczna · czerwone</td><td>+60</td></tr>
+      <tr><td>ALL-VAT · krytyczna · czerwone</td><td>+60</td></tr>
+      <tr><td>B2B-IP, B2B-ZAKAZ, B2B-KARY, B2B-SAD · zgodne</td><td>0</td></tr>
+    </table>
+
+    <div class="block">
+      <div class="label">Ryzyka (2)</div>
+      <ul class="risks">
+        <li><button class="risk" data-risk="R1" aria-pressed="true"><span class="lvl">KRYT</span><span class="tt">Podwykonawca na liście sankcyjnej</span><span class="rid">R1 · § 6</span></button></li>
+        <li><button class="risk" data-risk="R2" aria-pressed="false"><span class="lvl">KRYT</span><span class="tt">Rachunek spoza wykazu VAT</span><span class="rid">R2 · § 3</span></button></li>
+      </ul>
+
+      <div class="detail" id="detail-R1">
+        <p>Podwykonawca z § 6 lit. b figuruje na liście sankcyjnej MSWiA jako „REISS Błażej Bernard” (wpis z 13.09.2024).</p>
+        <p class="quote">Błażej Reiss, prowadzący jednoosobową działalność gospodarczą – prowadzenie warsztatów stacjonarnych dla zespołów księgowych w Łodzi;</p>
+        <p class="rec"><b>Rekomendacja:</b> wstrzymać podpisanie, usunąć podmiot z listy podwykonawców i zgłosić sprawę do compliance.</p>
+        <div class="code">
+          <div class="code-h"><span class="m">MATCH</span><span class="u">tabela_lista_sankcyjna_03_11_2026.xlsx › osoby</span><span class="st">1 trafienie</span></div>
+<pre>{
+  <span class="k">"nazwa_na_liscie"</span>: "REISS Błażej Bernard",
+  <span class="k">"rodzaj"</span>: "osoba",
+  <span class="k">"dane"</span>: "urodzony 6 września 1979 r.",
+  <span class="k">"data_wpisu"</span>: "2024-09-13",
+  <span class="k">"dopasowanie"</span>: "nazwa",
+  <span class="k">"zapytanie"</span>: <span class="x">"Błażej Reiss"</span>
+}</pre>
+        </div>
+      </div>
+
+      <div class="detail" id="detail-R2" hidden>
+        <p>Rachunek z § 3 ust. 3 nie występuje w wykazie VAT dla NIP 5260250274 (MINISTERSTWO FINANSÓW; w wykazie 17 rachunków).</p>
+        <p class="quote">PL 50 1140 2004 0000 3102 7865 4321</p>
+        <p class="rec"><b>Rekomendacja:</b> płatność tylko na rachunek z białej listy; zażądać potwierdzenia rachunku od kontrahenta.</p>
+        <div class="code">
+          <div class="code-h"><span class="m">GET</span><span class="u">wykazpodatnikowvat.mf.gov.pl/api/search/nip/5260250274?date=2026-11-16</span><span class="st">200 OK</span></div>
+<pre>{
+  <span class="k">"name"</span>: "MINISTERSTWO FINANSÓW",
+  <span class="k">"statusVat"</span>: "Czynny",
+  <span class="k">"accountNumbers"</span>: [ <span class="d">17 rachunków</span> ],
+  <span class="k">"requestId"</span>: "ckHyd-999gk79"
+}
+<span class="d">// szukany rachunek</span>
+<span class="x">50114020040000310278654321</span> <span class="d">→ brak w accountNumbers</span></pre>
+        </div>
+      </div>
+    </div>
+
+    <div class="block">
+      <div class="label">Strony i podwykonawcy</div>
+      <table class="who">
+        <tr><td>epruf S.A.<div class="r">Zleceniodawca</div></td><td><span class="tag ok">czysty</span></td></tr>
+        <tr><td>MINISTERSTWO FINANSÓW<div class="r">Zleceniobiorca · VAT Czynny</div></td><td><span class="tag ok">czysty</span></td></tr>
+        <tr><td>Akademia Kompetencji Cyfrowych Sp. z o.o.<div class="r">Podwykonawca</div></td><td><span class="tag ok">czysty</span></td></tr>
+        <tr><td>Błażej Reiss<div class="r">Podwykonawca</div></td><td><span class="tag bad">sankcje</span></td></tr>
+        <tr><td>DataBridge Consulting Sp. z o.o.<div class="r">Podwykonawca</div></td><td><span class="tag ok">czysty</span></td></tr>
+      </table>
+    </div>
+  </aside>
+</div>
+
+<!-- =========================================== REJESTR -->
+<div class="reg" id="rejestr" hidden>
+  <aside class="ask">
+    <label class="label" for="q">Zapytaj rejestr</label>
+    <div class="field"><textarea id="q">Znajdź umowy powierzenia bez zapisu o termination_data_policy</textarea></div>
+    <div style="margin-top: var(--space-2xs)"><button class="btn">Szukaj</button></div>
+    <div class="chips">
+      <button class="chip">Umowy zatwierdzone mimo czerwonych odstępstw</button>
+      <button class="chip">DPA ze zgłoszeniem naruszeń powyżej 24 h</button>
+      <button class="chip">B2B z limitem kar powyżej 10%</button>
+    </div>
+    <div class="ans">
+      <div class="label">Odpowiedź agenta</div>
+      <p>Jedna umowa powierzenia nie zobowiązuje do usunięcia danych: <b>TWOJ_ULUBIONY_TELEMARKETER_2026</b> („No deletion”). Ma status APPROVED, mimo 3 czerwonych odstępstw.</p>
+      <div class="code">
+        <div class="code-h"><span class="m">SQL</span><span class="u">sqlite · umowy</span><span class="st">1 wiersz</span></div>
+<pre><span class="k">SELECT</span> file_name, contractor,
+       termination_data_policy, usuwanie_danych
+<span class="k">FROM</span> umowy
+<span class="k">WHERE</span> typ = 'DPA' <span class="k">AND</span> usuwanie_danych = 0</pre>
+      </div>
+    </div>
+  </aside>
+  <main class="matrix-wrap">
+    <div class="label">Macierz zgodności · 12 umów × 9 zasad</div>
+    <table class="matrix" style="margin-top: var(--space-xs)">
+      <thead><tr><th>Umowa</th><th>IP</th><th>Zakaz</th><th>Kary</th><th>Sąd</th><th>Podpow.</th><th>Narusz.</th><th>Audyt</th><th>Usun.</th><th>Odpow.</th></tr></thead>
+      <tbody>
+        <tr class="hit"><td>TWOJ ULUBIONY TELEMARKETER PRO<div class="fn">DPA · 2025-12-31 · <span class="st">APPROVED</span></div></td><td><i class="c n"></i></td><td><i class="c n"></i></td><td><i class="c n"></i></td><td><i class="c n"></i></td><td><i class="c y"></i></td><td><i class="c r" title="600 h"></i></td><td><i class="c y"></i></td><td><i class="c r" title="No deletion"></i></td><td><i class="c r" title="200 PLN"></i></td></tr>
+        <tr><td>CallCenter PRO<div class="fn">DPA · 2026-07-05 · <span class="st">WITH_RESERVATION</span></div></td><td><i class="c n"></i></td><td><i class="c n"></i></td><td><i class="c n"></i></td><td><i class="c n"></i></td><td><i class="c y"></i></td><td><i class="c y"></i></td><td><i class="c y"></i></td><td><i class="c g"></i></td><td><i class="c y"></i></td></tr>
+        <tr><td>SecureCloud Poland<div class="fn">DPA · 2026-02-18 · <span class="st">APPROVED</span></div></td><td><i class="c n"></i></td><td><i class="c n"></i></td><td><i class="c n"></i></td><td><i class="c n"></i></td><td><i class="c g"></i></td><td><i class="c g"></i></td><td><i class="c y"></i></td><td><i class="c g"></i></td><td><i class="c g"></i></td></tr>
+        <tr><td>Optima Audyt s.c.<div class="fn">DPA · 2025-06-01 · <span class="st">APPROVED</span></div></td><td><i class="c n"></i></td><td><i class="c n"></i></td><td><i class="c n"></i></td><td><i class="c n"></i></td><td><i class="c g"></i></td><td><i class="c g"></i></td><td><i class="c y"></i></td><td><i class="c g"></i></td><td><i class="c g"></i></td></tr>
+        <tr><td>Impuls HR<div class="fn">DPA · 2025-01-15 · <span class="st">APPROVED</span></div></td><td><i class="c n"></i></td><td><i class="c n"></i></td><td><i class="c n"></i></td><td><i class="c n"></i></td><td><i class="c y"></i></td><td><i class="c y"></i></td><td><i class="c g"></i></td><td><i class="c g"></i></td><td><i class="c g"></i></td></tr>
+        <tr><td>Salesforce.com EMEA<div class="fn">DPA · 2024-03-10 · <span class="st">APPROVED</span></div></td><td><i class="c n"></i></td><td><i class="c n"></i></td><td><i class="c n"></i></td><td><i class="c n"></i></td><td><i class="c g"></i></td><td><i class="c g"></i></td><td><i class="c y"></i></td><td><i class="c g"></i></td><td><i class="c g"></i></td></tr>
+        <tr><td>MINISTERSTWO FINANSÓW<div class="fn">B2B · 2026-11-16 · <span class="st">NOWA_ANALIZA · score 100</span></div></td><td><i class="c g"></i></td><td><i class="c g"></i></td><td><i class="c g"></i></td><td><i class="c g"></i></td><td><i class="c n"></i></td><td><i class="c n"></i></td><td><i class="c n"></i></td><td><i class="c n"></i></td><td><i class="c n"></i></td></tr>
+        <tr><td>Zalewski Cloud Architect<div class="fn">B2B · 2026-06-01 · <span class="st">WITH_RESERVATION</span></div></td><td><i class="c g"></i></td><td><i class="c g"></i></td><td><i class="c y"></i></td><td><i class="c g"></i></td><td><i class="c n"></i></td><td><i class="c n"></i></td><td><i class="c n"></i></td><td><i class="c n"></i></td><td><i class="c n"></i></td></tr>
+        <tr><td>PM Solutions<div class="fn">B2B · 2026-01-10 · <span class="st">APPROVED</span></div></td><td><i class="c g"></i></td><td><i class="c g"></i></td><td><i class="c g"></i></td><td><i class="c g"></i></td><td><i class="c n"></i></td><td><i class="c n"></i></td><td><i class="c n"></i></td><td><i class="c n"></i></td><td><i class="c n"></i></td></tr>
+        <tr><td>SecOps Secure<div class="fn">B2B · 2025-08-15 · <span class="st">APPROVED</span></div></td><td><i class="c g"></i></td><td><i class="c g"></i></td><td><i class="c g"></i></td><td><i class="c g"></i></td><td><i class="c n"></i></td><td><i class="c n"></i></td><td><i class="c n"></i></td><td><i class="c n"></i></td><td><i class="c n"></i></td></tr>
+        <tr><td>Nowak Design Studio<div class="fn">B2B · 2025-04-10 · <span class="st">APPROVED</span></div></td><td><i class="c y"></i></td><td><i class="c y"></i></td><td><i class="c g"></i></td><td><i class="c g"></i></td><td><i class="c n"></i></td><td><i class="c n"></i></td><td><i class="c n"></i></td><td><i class="c n"></i></td><td><i class="c n"></i></td></tr>
+        <tr><td>Kowalski IT Consulting<div class="fn">B2B · 2024-02-01 · <span class="st">APPROVED</span></div></td><td><i class="c g"></i></td><td><i class="c g"></i></td><td><i class="c g"></i></td><td><i class="c g"></i></td><td><i class="c n"></i></td><td><i class="c n"></i></td><td><i class="c n"></i></td><td><i class="c n"></i></td><td><i class="c n"></i></td></tr>
+      </tbody>
+    </table>
+    <div class="legend"><span><i class="c g"></i> zgodne</span><span><i class="c y"></i> żółte odstępstwo</span><span><i class="c r"></i> czerwone odstępstwo</span><span><i class="c n"></i> nie dotyczy typu</span></div>
+  </main>
+</div>
+
+<script>
+  const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
+  const behavior = reduce ? "auto" : "smooth";
+  document.querySelectorAll(".tab").forEach((t) => t.addEventListener("click", () => {
+    document.querySelectorAll(".tab").forEach((x) => x.setAttribute("aria-selected", String(x === t)));
+    document.getElementById("analiza").hidden = t.dataset.view !== "analiza";
+    document.getElementById("rejestr").hidden = t.dataset.view !== "rejestr";
+    if (t.dataset.view === "analiza") drawRail();
+  }));
+
+  function flash(el) { el.classList.remove("flash"); void el.offsetWidth; el.classList.add("flash"); }
+  function select(id, scroll = true) {
+    document.querySelectorAll(".risk").forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.risk === id)));
+    document.querySelectorAll(".detail").forEach((d) => (d.hidden = d.id !== "detail-" + id));
+    document.querySelectorAll("mark").forEach((m) => m.classList.toggle("on", m.dataset.risk === id));
+    if (scroll) { const m = document.getElementById("mark-" + id); m.scrollIntoView({ block: "center", behavior }); flash(m); }
+  }
+  document.querySelectorAll(".risk").forEach((b) => b.addEventListener("click", () => select(b.dataset.risk)));
+  document.querySelectorAll("mark[data-risk]").forEach((m) => m.addEventListener("click", () => select(m.dataset.risk, false)));
+  document.querySelectorAll("[data-goto]").forEach((b) => b.addEventListener("click", () => {
+    const s = document.getElementById(b.dataset.goto); s.scrollIntoView({ block: "start", behavior });
+  }));
+
+  // Risk map: one tick per risk (and a faint one per compliant section) at its relative height in the document.
+  function drawRail() {
+    const rail = document.getElementById("rail"), doc = document.getElementById("doc");
+    if (!rail.offsetHeight) return;
+    rail.innerHTML = "";
+    const h = doc.scrollHeight, top = doc.getBoundingClientRect().top;
+    const place = (el, cls, id) => {
+      const y = (el.getBoundingClientRect().top - top) / h;
+      const t = document.createElement(id ? "button" : "span");
+      t.className = "tick " + cls; t.style.top = `calc(${(y * 100).toFixed(2)}% - 3px)`;
+      if (id) { t.title = id; t.setAttribute("aria-label", "Ryzyko " + id); t.addEventListener("click", () => select(id)); }
+      rail.appendChild(t);
+    };
+    document.querySelectorAll(".sec h2 .chk:not(.bad)").forEach((c) => place(c.closest(".sec"), "ok"));
+    document.querySelectorAll("mark[data-risk]").forEach((m) => place(m, "", m.dataset.risk));
+  }
+  addEventListener("load", drawRail); addEventListener("resize", drawRail);
+</script>
+</body>
+</html>

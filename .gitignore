@@ -1,0 +1,10 @@
+.venv/
+__pycache__/
+.ruff_cache/
+.DS_Store
+.adk/
+.env
+*.json.key
+cepd-hackathon-*.json
+data/*.db
+data/*.db-*

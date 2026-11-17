@@ -1,0 +1,35 @@
+UMOWA O ŚWIADCZENIE USŁUG B2B (LCAI - YELLOW)
+
+Zawarta pomiędzy:
+epruf S.A. z siedzibą w Łodzi (Zleceniodawca)
+a
+Piotr Zieliński, prowadzącym działalność gospodarczą pod firmą "Zieliński Code" w Poznaniu (Zleceniobiorca).
+
+§ 1 PRZEDMIOT UMOWY
+Świadczenie usług programistycznych w technologii Python na potrzeby modułów platformy epruf.
+
+§ 2 PRZENIESIENIE PRAW AUTORSKICH (⚠️ YELLOW RISK - CONDITIONAL IP TRANSFER)
+Autorskie prawa majątkowe do kodu stworzonego przez Zleceniobiorcę przechodzą na Zleceniodawcę wyłącznie pod warunkiem terminowej i pełnej zapłaty wynagrodzenia wskazanego na fakturze VAT za dany miesiąc.
+
+§ 3 ZAKAZ KONKURENCJI (⚠️ YELLOW RISK - SHORT NON-COMPETE PERIOD)
+Zleceniobiorca zobowiązuje się do nieprowadzenia działalności konkurencyjnej wobec Zleceniodawcy w okresie trwania umowy oraz przez okres 3 miesięcy po jej zakończeniu.
+
+§ 4 KARY UMOWNE
+Zleceniobiorca zapłaci karę umowną w wysokości 500 PLN za każdy dzień opóźnienia w realizacji kamienia milowego. Suma kar nie może przekroczyć 10% wartości zlecenia.
+
+§ 5 JURYSDYKCJA
+Wszelkie spory wynikające z umowy będą rozstrzygane przez sąd właściwy dla siedziby Zleceniodawcy w Łodzi.
+
+§ 6 WYNAGRODZENIE I PŁATNOŚCI
+1. Z tytułu realizacji umowy Zleceniobiorcy przysługuje wynagrodzenie w wysokości 150 PLN netto za każdą godzinę świadczenia usług, powiększone o należny podatek VAT, płatne w terminie 14 dni od dnia otrzymania prawidłowo wystawionej faktury.
+2. Faktury wystawiane są jako faktury ustrukturyzowane w Krajowym Systemie e-Faktur (KSeF), zgodnie z przepisami ustawy o podatku od towarów i usług. W przypadku niedostępności lub awarii KSeF Zleceniobiorca przekaże fakturę na adres e-mail Zleceniodawcy wskazany do doręczania faktur, w postaci wizualizacji opatrzonej kodem QR, i prześle ją do KSeF w terminie wynikającym z przepisów; termin płatności biegnie wówczas od dnia otrzymania faktury w tej postaci.
+3. Stawka godzinowa podlega waloryzacji raz w roku, od dnia 1 stycznia, o średnioroczny wskaźnik cen towarów i usług konsumpcyjnych ogłoszony przez Prezesa GUS za rok poprzedni. Zmiana stawki wymaga zawarcia aneksu do umowy.
+
+§ 7 ODBIÓR PRAC (⚠️ YELLOW RISK - AUTOMATIC ACCEPTANCE)
+Zleceniodawca może zgłosić uwagi do przekazanych prac w terminie 3 dni roboczych od ich przekazania. Brak uwag w tym terminie oznacza odbiór prac bez zastrzeżeń.
+
+§ 8 DANE OSOBOWE (⚠️ YELLOW RISK - PRIVACY POLICY REFERENCE ONLY)
+Informacje o przetwarzaniu danych osobowych reprezentantów i osób kontaktowych Stron zawiera polityka prywatności Zleceniobiorcy opublikowana na jego stronie internetowej.
+
+§ 9 ETYKA (⚠️ YELLOW RISK - GENERAL STATEMENT ONLY)
+Strony oświadczają, że przy wykonywaniu umowy będą przestrzegać obowiązujących przepisów prawa, w tym przepisów antykorupcyjnych.

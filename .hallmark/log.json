@@ -1,0 +1,6 @@
+[
+  { "date": "2026-11-16", "macrostructure": "Long Document (contract sheet + margin notes)", "theme": "studied-DNA (LCAI first version: graphite/lime/sky/navy)", "enrichment": "none", "nav": "N1b brand bar", "brief": "Mockup D · layout A in LCAI brand colours (user pick)" },
+  { "date": "2026-11-16", "macrostructure": "Stat-Led (verdict + excerpts + document drawer)", "theme": "custom", "theme_axes": "dark / display-heavy grotesk / warm red", "vibe": "nocna sala kontroli, jeden czerwony sygnał", "enrichment": "none", "brief": "Mockup C · werdykt najpierw" },
+  { "date": "2026-11-16", "macrostructure": "Workbench (three-pane inspector)", "theme": "Cobalt", "enrichment": "none", "brief": "Mockup B · kokpit analityka" },
+  { "date": "2026-11-16", "macrostructure": "Long Document (document + margin notes)", "theme": "custom", "theme_axes": "light / serif / oxblood", "vibe": "kancelaria, papier, czerwony atrament", "enrichment": "none", "brief": "Mockup A · dokument z marginesem" }
+]

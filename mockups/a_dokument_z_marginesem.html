@@ -1,0 +1,452 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Mockup A · Dokument z marginesem</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:opsz,wght@6..72,400;6..72,500;6..72,600&family=Public+Sans:wght@400;500;600;700&family=Spline+Sans+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+/* Hallmark · macrostructure: Long Document (app variant: document + margin notes) · tone: editorial, legal redline · anchor hue: oxblood 25
+ * genre: editorial · theme: custom (vibe: "kancelaria, papier, czerwony atrament") · paper oklch(97% 0.012 85) · accent oklch(46% 0.15 25)
+ * fonts: Newsreader (document) + Public Sans (UI) + Spline Sans Mono (numbers)
+ * Hallmark · pre-emit critique: P4 H5 E4 S5 R4 V5
+ */
+:root {
+  --color-paper:    oklch(97% 0.012 85);
+  --color-paper-2:  oklch(94.5% 0.016 85);
+  --color-ink:      oklch(23% 0.015 60);
+  --color-ink-2:    oklch(40% 0.014 60);
+  --color-muted:    oklch(54% 0.012 60);
+  --color-rule:     oklch(87% 0.014 80);
+  --color-accent:   oklch(46% 0.15 25);
+  --color-accent-2: oklch(93% 0.035 25);
+  --color-mark:     oklch(89% 0.065 25);
+  --color-ok:       oklch(47% 0.09 150);
+  --color-ok-2:     oklch(94% 0.03 150);
+  --color-focus:    oklch(50% 0.16 255);
+
+  --font-doc:  "Newsreader", Georgia, serif;
+  --font-ui:   "Public Sans", system-ui, sans-serif;
+  --font-mono: "Spline Sans Mono", ui-monospace, monospace;
+
+  --space-3xs: 0.25rem; --space-2xs: 0.5rem; --space-xs: 0.75rem; --space-sm: 1rem;
+  --space-md: 1.5rem; --space-lg: 2rem; --space-xl: 3rem; --space-2xl: 4.5rem;
+
+  --text-xs: 0.75rem; --text-sm: 0.875rem; --text-md: 1.0625rem; --text-lg: 1.25rem;
+  --text-xl: 1.75rem; --text-2xl: 2.5rem; --text-num: clamp(3.5rem, 6vw + 1rem, 6rem);
+
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --dur-short: 220ms;
+  --radius: 3px;
+  --margin-col: 300px;
+}
+* { box-sizing: border-box; }
+html, body { overflow-x: clip; }
+body { margin: 0; background: var(--color-paper); color: var(--color-ink); font: 400 var(--text-sm)/1.55 var(--font-ui); }
+a { color: inherit; }
+button { font: inherit; color: inherit; }
+:focus-visible { outline: 2px solid var(--color-focus); outline-offset: 2px; }
+
+/* ---------- masthead */
+.top { border-bottom: 1px solid var(--color-rule); }
+.top-in { max-width: 1180px; margin: 0 auto; padding: var(--space-sm) var(--space-md); display: flex; align-items: baseline; gap: var(--space-lg); flex-wrap: wrap; }
+.mark { font: 600 var(--text-lg)/1 var(--font-doc); letter-spacing: -0.01em; }
+.mark span { color: var(--color-muted); font: 400 var(--text-sm) var(--font-ui); margin-left: var(--space-2xs); }
+.tabs { display: flex; gap: var(--space-md); }
+.tab { background: none; border: 0; padding: var(--space-3xs) 0; cursor: pointer; color: var(--color-muted); border-bottom: 2px solid transparent; white-space: nowrap; }
+.tab:hover { color: var(--color-ink); }
+.tab[aria-selected="true"] { color: var(--color-ink); border-bottom-color: var(--color-ink); font-weight: 600; }
+.file { margin-left: auto; color: var(--color-muted); white-space: nowrap; }
+.file b { color: var(--color-ink); font-weight: 500; }
+.linkbtn { background: none; border: 0; padding: 0; cursor: pointer; text-decoration: underline; text-underline-offset: 3px; color: var(--color-ink-2); }
+
+main { max-width: 1180px; margin: 0 auto; padding: 0 var(--space-md) var(--space-2xl); }
+[hidden] { display: none !important; }
+
+/* ---------- verdict */
+.verdict { display: grid; grid-template-columns: auto minmax(0, 1.4fr) minmax(0, 1fr); gap: var(--space-xl); padding: var(--space-xl) 0 var(--space-lg); border-bottom: 1px solid var(--color-rule); align-items: start; }
+.score .num { font: 500 var(--text-num)/0.9 var(--font-doc); color: var(--color-accent); font-variant-numeric: tabular-nums; letter-spacing: -0.03em; }
+.score .num small { font-size: 0.32em; color: var(--color-muted); letter-spacing: 0; }
+.score .lbl { margin-top: var(--space-2xs); font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; font-size: var(--text-xs); color: var(--color-accent); }
+.lede h1 { font: 500 var(--text-xl)/1.2 var(--font-doc); margin: 0 0 var(--space-xs); letter-spacing: -0.01em; }
+.lede p { margin: 0; font: 400 var(--text-md)/1.6 var(--font-doc); color: var(--color-ink-2); max-width: 62ch; }
+.checks { list-style: none; margin: 0; padding: 0; font-size: var(--text-sm); }
+.checks li { padding: var(--space-2xs) 0; border-top: 1px solid var(--color-rule); display: grid; grid-template-columns: 1.1rem minmax(0, 1fr); gap: var(--space-2xs); }
+.checks li:first-child { border-top: 0; padding-top: 0; }
+.checks .k { font-weight: 600; }
+.checks .v { color: var(--color-muted); }
+.dot { width: 0.6rem; height: 0.6rem; margin-top: 0.4rem; border-radius: 50%; background: var(--color-ok); }
+.dot.bad { background: var(--color-accent); }
+
+/* ---------- key terms ledger */
+.terms { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); border-bottom: 1px solid var(--color-rule); }
+.term { padding: var(--space-sm) var(--space-sm) var(--space-sm) 0; border: 0; background: none; text-align: left; cursor: pointer; display: flex; flex-direction: column; justify-content: flex-start; align-items: flex-start; }
+.term + .term { padding-left: var(--space-sm); border-left: 1px solid var(--color-rule); }
+.term:hover .tv { text-decoration: underline; text-underline-offset: 3px; }
+.term .tk { display: block; font-size: var(--text-xs); color: var(--color-muted); text-transform: uppercase; letter-spacing: 0.05em; }
+.term .tv { display: block; font: 500 var(--text-md)/1.35 var(--font-doc); margin-top: var(--space-3xs); }
+.term .mono { font-family: var(--font-mono); font-size: var(--text-sm); font-variant-numeric: tabular-nums; }
+.flag { display: inline-block; margin-top: var(--space-3xs); font-size: var(--text-xs); font-weight: 600; color: var(--color-accent); }
+
+/* ---------- document + margin */
+.doc { padding-top: var(--space-xl); }
+.doc-head { display: grid; grid-template-columns: minmax(0, 1fr) var(--margin-col); gap: var(--space-xl); }
+.doc-head h2 { font: 600 var(--text-lg)/1.3 var(--font-doc); text-align: center; margin: 0; letter-spacing: 0.01em; }
+.doc-head .meta { text-align: center; color: var(--color-muted); font: 400 var(--text-md) var(--font-doc); margin-top: var(--space-3xs); }
+.margin-head { font-size: var(--text-xs); text-transform: uppercase; letter-spacing: 0.06em; color: var(--color-muted); border-bottom: 1px solid var(--color-rule); padding-bottom: var(--space-2xs); align-self: end; }
+
+.parties { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: var(--space-md); margin: var(--space-lg) 0 var(--space-md); }
+.party { border-top: 2px solid var(--color-ink); padding-top: var(--space-xs); font: 400 var(--text-md)/1.5 var(--font-doc); }
+.party .role { font: 600 var(--text-xs) var(--font-ui); text-transform: uppercase; letter-spacing: 0.06em; color: var(--color-muted); }
+.party .name { font-weight: 600; }
+.party .id { font: 400 var(--text-sm) var(--font-mono); color: var(--color-ink-2); font-variant-numeric: tabular-nums; }
+
+.row { display: grid; grid-template-columns: minmax(0, 1fr) var(--margin-col); gap: var(--space-xl); }
+.text { font: 400 var(--text-md)/1.7 var(--font-doc); max-width: 68ch; }
+.sec-title { font: 600 var(--text-md)/1.4 var(--font-doc); margin: var(--space-lg) 0 var(--space-2xs); }
+.sec-title .no { color: var(--color-muted); font-weight: 500; margin-right: var(--space-2xs); }
+.clause { display: grid; grid-template-columns: 1.6rem minmax(0, 1fr); margin: 0 0 var(--space-2xs); }
+.clause .n { color: var(--color-muted); font-variant-numeric: tabular-nums; }
+.sub { display: grid; grid-template-columns: 1.4rem minmax(0, 1fr); margin: var(--space-3xs) 0 var(--space-3xs) 1.6rem; }
+.sub .n { color: var(--color-muted); }
+.plain { margin: 0 0 var(--space-2xs); }
+mark { background: var(--color-mark); color: inherit; padding: 0.05em 0.15em; border-radius: var(--radius); cursor: pointer; box-decoration-break: clone; -webkit-box-decoration-break: clone; }
+mark:hover, mark.on { background: var(--color-accent); color: var(--color-paper); }
+
+/* margin notes */
+.margin { padding-top: var(--space-lg); }
+.ok-note { font-size: var(--text-xs); color: var(--color-ok); display: flex; gap: var(--space-2xs); align-items: baseline; padding-top: 0.15rem; }
+.ok-note::before { content: ""; width: 0.5rem; height: 0.5rem; border-radius: 50%; background: var(--color-ok); flex: none; transform: translateY(0.05rem); }
+.ok-note span { color: var(--color-muted); }
+.note { display: block; width: 100%; text-align: left; border: 1px solid var(--color-accent); background: var(--color-paper); padding: var(--space-xs) var(--space-sm); border-radius: var(--radius); cursor: pointer; margin-top: var(--space-3xs); transition: background var(--dur-short) var(--ease-out); }
+.note:hover, .note.on { background: var(--color-accent-2); }
+.note .nh { display: flex; gap: var(--space-2xs); align-items: baseline; font-weight: 700; color: var(--color-accent); font-size: var(--text-xs); text-transform: uppercase; letter-spacing: 0.05em; }
+.note .nh::before { content: ""; width: 0.55rem; height: 0.55rem; background: var(--color-accent); flex: none; }
+.note .nh .rid { margin-left: auto; font-family: var(--font-mono); font-weight: 400; letter-spacing: 0; }
+.note p { margin: var(--space-2xs) 0 0; font-size: var(--text-sm); }
+.note .src { color: var(--color-muted); font-size: var(--text-xs); margin-top: var(--space-2xs); border-top: 1px solid var(--color-rule); padding-top: var(--space-2xs); }
+.note .rec { font-weight: 600; }
+.sign { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: var(--space-xl); margin-top: var(--space-xl); color: var(--color-muted); font: 400 var(--text-sm) var(--font-doc); }
+.sign div { border-top: 1px solid var(--color-ink-2); padding-top: var(--space-3xs); }
+
+.flash { animation: flash 1.4s var(--ease-out); }
+@keyframes flash { 0%, 35% { outline: 3px solid var(--color-focus); outline-offset: 3px; } 100% { outline: 3px solid transparent; outline-offset: 3px; } }
+
+/* ---------- registry */
+.ask { padding: var(--space-xl) 0 var(--space-md); border-bottom: 1px solid var(--color-rule); }
+.ask label { display: block; font-size: var(--text-xs); text-transform: uppercase; letter-spacing: 0.06em; color: var(--color-muted); }
+.ask-row { display: flex; gap: var(--space-sm); align-items: end; margin-top: var(--space-2xs); }
+.ask input { flex: 1; min-width: 0; font: 400 var(--text-xl)/1.3 var(--font-doc); border: 0; border-bottom: 2px solid var(--color-ink); background: transparent; padding: var(--space-2xs) 0; color: var(--color-ink); }
+.ask input:focus-visible { outline: none; border-bottom-color: var(--color-focus); }
+.btn { background: var(--color-ink); color: var(--color-paper); border: 0; border-radius: var(--radius); padding: var(--space-xs) var(--space-md); font-weight: 600; cursor: pointer; white-space: nowrap; }
+.btn:hover { background: var(--color-ink-2); }
+.btn:active { transform: translateY(1px); }
+.suggest { display: flex; gap: var(--space-md); flex-wrap: wrap; margin-top: var(--space-sm); font-size: var(--text-sm); }
+.answer { display: grid; grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr); gap: var(--space-xl); padding: var(--space-lg) 0; border-bottom: 1px solid var(--color-rule); }
+.answer p { margin: 0; font: 400 var(--text-md)/1.65 var(--font-doc); }
+.sql { margin: 0; padding: var(--space-sm); background: var(--color-paper-2); border: 1px solid var(--color-rule); border-radius: var(--radius); font: 400 var(--text-sm)/1.6 var(--font-mono); white-space: pre-wrap; overflow-wrap: anywhere; }
+.sql-l { font-size: var(--text-xs); text-transform: uppercase; letter-spacing: 0.06em; color: var(--color-muted); margin-bottom: var(--space-2xs); }
+.ledger { width: 100%; border-collapse: collapse; margin-top: var(--space-md); font-size: var(--text-sm); }
+.ledger caption { text-align: left; font: 600 var(--text-lg) var(--font-doc); padding-bottom: var(--space-xs); }
+.ledger th { text-align: left; font-size: var(--text-xs); text-transform: uppercase; letter-spacing: 0.05em; color: var(--color-muted); font-weight: 600; padding: var(--space-2xs) var(--space-sm) var(--space-2xs) 0; border-bottom: 1px solid var(--color-ink); }
+.ledger td { padding: var(--space-xs) var(--space-sm) var(--space-xs) 0; border-bottom: 1px solid var(--color-rule); vertical-align: top; }
+.ledger .fn { font-family: var(--font-mono); font-size: var(--text-xs); }
+.ledger .who { font: 500 var(--text-md) var(--font-doc); }
+.ledger tr.hit .who::before { content: ""; display: inline-block; width: 0.55rem; height: 0.55rem; background: var(--color-accent); margin-right: var(--space-2xs); }
+.dev { display: block; }
+.dev b { font-weight: 600; }
+.dev.red b { color: var(--color-accent); }
+.muted { color: var(--color-muted); }
+.num { font-variant-numeric: tabular-nums; }
+
+@media (max-width: 960px) {
+  .verdict { grid-template-columns: auto minmax(0, 1fr); }
+  .checks { grid-column: 1 / -1; }
+  .terms { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .term, .term + .term { padding: var(--space-xs) var(--space-xs) var(--space-xs) 0; border-left: 0; border-top: 1px solid var(--color-rule); }
+  .row, .doc-head { grid-template-columns: minmax(0, 1fr); gap: 0; }
+  .margin { padding: 0 0 var(--space-xs) 1.6rem; }
+  .margin-head { display: none; }
+  .answer { grid-template-columns: minmax(0, 1fr); gap: var(--space-md); }
+}
+@media (max-width: 560px) {
+  .top-in { gap: var(--space-sm); padding: var(--space-xs) var(--space-sm); }
+  main { padding: 0 var(--space-sm) var(--space-xl); }
+  .file { margin-left: 0; width: 100%; }
+  .verdict { grid-template-columns: minmax(0, 1fr); gap: var(--space-md); }
+  .parties { grid-template-columns: minmax(0, 1fr); }
+  .ask-row { flex-direction: column; align-items: stretch; }
+  .ask input { font-size: var(--text-lg); }
+  .ledger thead { display: none; }
+  .ledger tr { display: block; border-bottom: 1px solid var(--color-rule); padding: var(--space-xs) 0; }
+  .ledger td { display: block; border: 0; padding: var(--space-3xs) 0; }
+  .sign { grid-template-columns: minmax(0, 1fr); gap: var(--space-md); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .flash { animation: none; outline: 3px solid var(--color-focus); }
+  .note { transition: none; }
+}
+</style>
+</head>
+<body>
+
+<header class="top">
+  <div class="top-in">
+    <div class="mark">Weryfikacja umów <span>Grupa Pelion</span></div>
+    <nav class="tabs" role="tablist">
+      <button class="tab" role="tab" aria-selected="true" data-view="analiza">Analiza umowy</button>
+      <button class="tab" role="tab" aria-selected="false" data-view="rejestr">Rejestr umów</button>
+    </nav>
+    <div class="file">Plik: <b>umowa_demo_b2b.docx</b> · <button class="linkbtn">wczytaj inny</button></div>
+  </div>
+</header>
+
+<main>
+<!-- =========================================== ANALIZA -->
+<section id="analiza">
+  <div class="verdict">
+    <div class="score">
+      <div class="num">100<small>/100</small></div>
+      <div class="lbl">Ryzyko krytyczne</div>
+    </div>
+    <div class="lede">
+      <h1>Nie podpisywać w tej wersji. Dwa ustalenia blokują umowę.</h1>
+      <p>Umowa B2B ze Zleceniobiorcą (Ministerstwo Finansów) dotyczy szkoleń i wsparcia wdrożeniowego KSeF za 45 000 PLN netto miesięcznie. Zapisy o prawach autorskich, zakazie konkurencji, karach umownych i sądzie są zgodne ze standardem Grupy Pelion. Jeden z podwykonawców figuruje na liście sankcyjnej MSWiA, a rachunek do płatności nie widnieje w wykazie VAT.</p>
+    </div>
+    <ul class="checks">
+      <li><span class="dot bad"></span><span><span class="k">Lista sankcyjna MSWiA</span><br><span class="v">553 aktywne wpisy · 1 trafienie</span></span></li>
+      <li><span class="dot bad"></span><span><span class="k">Wykaz podatników VAT MF</span><br><span class="v">NIP 5260250274 · Czynny · rachunek spoza wykazu</span></span></li>
+      <li><span class="dot"></span><span><span class="k">Zasady Grupy Pelion (B2B)</span><br><span class="v">4 z 4 zgodne</span></span></li>
+    </ul>
+  </div>
+
+  <div class="terms">
+    <button class="term" data-goto="s1"><span class="tk">Przedmiot</span><span class="tv">Szkolenia i wsparcie wdrożeniowe KSeF</span></button>
+    <button class="term" data-goto="s2"><span class="tk">Okres</span><span class="tv">Nieokreślony od 1.12.2026, wypowiedzenie 3 mies.</span></button>
+    <button class="term" data-goto="s3"><span class="tk">Wynagrodzenie</span><span class="tv"><span class="num">45 000</span> PLN netto / mies.</span></button>
+    <button class="term" data-goto="s3"><span class="tk">Termin płatności</span><span class="tv">14 dni od doręczenia faktury</span></button>
+    <button class="term" data-goto="R2"><span class="tk">Rachunek</span><span class="tv mono">50 1140 2004 0000 3102 7865 4321</span><span class="flag">spoza wykazu VAT</span></button>
+  </div>
+
+  <article class="doc">
+    <div class="doc-head">
+      <div>
+        <h2>UMOWA O ŚWIADCZENIE USŁUG B2B nr 47/KSEF/2026</h2>
+        <div class="meta">zawarta w dniu 16 listopada 2026 r. w Łodzi</div>
+      </div>
+      <div class="margin-head">Uwagi agenta</div>
+    </div>
+
+    <div class="row">
+      <div class="text">
+        <div class="parties">
+          <div class="party"><div class="role">Zleceniodawca</div><div class="name">epruf S.A.</div>ul. Zbąszyńska 3, 91-342 Łódź<br><span class="id">NIP 9471958279 · KRS 0000319410</span><br>reprezentowana przez Pawła Świątka – Członka Zarządu</div>
+          <div class="party"><div class="role">Zleceniobiorca</div><div class="name">MINISTERSTWO FINANSÓW</div>ul. Świętokrzyska 12, 00-916 Warszawa<br><span class="id">NIP 5260250274 · REGON 000002217</span></div>
+        </div>
+      </div>
+      <div class="margin"><div class="ok-note">Kontrahent w wykazie VAT: <span>status Czynny</span></div></div>
+    </div>
+
+    <div class="row" id="s1">
+      <div class="text">
+        <h3 class="sec-title"><span class="no">§ 1</span>Przedmiot umowy</h3>
+        <p class="clause"><span class="n">1.</span><span>Zleceniobiorca zobowiązuje się do przeprowadzenia cyklu szkoleń oraz świadczenia wsparcia wdrożeniowego w zakresie Krajowego Systemu e-Faktur (KSeF) dla zespołów finansowych i IT Zleceniodawcy.</span></p>
+        <p class="clause"><span class="n">2.</span><span>Szczegółowy harmonogram szkoleń i warsztatów stanowi Załącznik nr 1 do Umowy.</span></p>
+      </div>
+      <div class="margin"></div>
+    </div>
+
+    <div class="row" id="s2">
+      <div class="text">
+        <h3 class="sec-title"><span class="no">§ 2</span>Okres obowiązywania i wypowiedzenie</h3>
+        <p class="clause"><span class="n">1.</span><span>Umowa zostaje zawarta na czas nieokreślony od dnia 1 grudnia 2026 r.</span></p>
+        <p class="clause"><span class="n">2.</span><span>Każda ze Stron może wypowiedzieć Umowę z zachowaniem 3-miesięcznego okresu wypowiedzenia ze skutkiem na koniec miesiąca kalendarzowego.</span></p>
+      </div>
+      <div class="margin"></div>
+    </div>
+
+    <div class="row" id="s3">
+      <div class="text">
+        <h3 class="sec-title"><span class="no">§ 3</span>Wynagrodzenie i płatności</h3>
+        <p class="clause"><span class="n">1.</span><span>Z tytułu realizacji Umowy Zleceniobiorcy przysługuje wynagrodzenie ryczałtowe w wysokości 45 000 PLN netto miesięcznie, powiększone o należny podatek VAT.</span></p>
+        <p class="clause"><span class="n">2.</span><span>Wynagrodzenie płatne będzie w terminie 14 dni od dnia doręczenia prawidłowo wystawionej faktury VAT, na podstawie zaakceptowanego przez Zleceniodawcę miesięcznego protokołu odbioru.</span></p>
+        <p class="clause"><span class="n">3.</span><span>Zapłata nastąpi przelewem na rachunek bankowy Zleceniobiorcy nr <mark id="mark-R2" data-risk="R2">PL 50 1140 2004 0000 3102 7865 4321</mark>.</span></p>
+        <p class="clause"><span class="n">4.</span><span>Zmiana rachunku bankowego wymaga aneksu w formie pisemnej pod rygorem nieważności.</span></p>
+      </div>
+      <div class="margin">
+        <button class="note" id="note-R2" data-risk="R2">
+          <span class="nh">Biała lista VAT <span class="rid">R2</span></span>
+          <p>Rachunek nie występuje w wykazie VAT dla NIP 5260250274. Wykaz zawiera 17 innych rachunków tego podatnika.</p>
+          <p class="rec">Płatność tylko na rachunek z białej listy; zażądać potwierdzenia rachunku od kontrahenta.</p>
+          <span class="src" style="display:block">Wykaz podatników VAT MF · zapytanie ckHyd-999gk79 · 16.11.2026</span>
+        </button>
+      </div>
+    </div>
+
+    <div class="row" id="s4">
+      <div class="text">
+        <h3 class="sec-title"><span class="no">§ 4</span>Przeniesienie praw autorskich</h3>
+        <p class="plain">W ramach wynagrodzenia, o którym mowa w § 3, Zleceniobiorca przenosi na Zleceniodawcę autorskie prawa majątkowe do wszelkich materiałów szkoleniowych, dokumentacji i kodu powstałych w ramach realizacji Umowy, na wszystkich polach eksploatacji, z chwilą podpisania miesięcznego protokołu odbioru prac.</p>
+      </div>
+      <div class="margin"><div class="ok-note">B2B-IP <span>· przeniesienie z protokołem odbioru</span></div></div>
+    </div>
+
+    <div class="row" id="s5">
+      <div class="text">
+        <h3 class="sec-title"><span class="no">§ 5</span>Zakaz konkurencji</h3>
+        <p class="plain">Zleceniobiorca zobowiązuje się, że w okresie obowiązywania Umowy oraz przez okres 12 miesięcy od jej rozwiązania nie będzie świadczył usług wdrożeniowych w zakresie KSeF na rzecz podmiotów bezpośrednio konkurencyjnych wobec epruf S.A. ani Grupy Pelion.</p>
+      </div>
+      <div class="margin"><div class="ok-note">B2B-ZAKAZ <span>· 12 miesięcy</span></div></div>
+    </div>
+
+    <div class="row" id="s6">
+      <div class="text">
+        <h3 class="sec-title"><span class="no">§ 6</span>Podwykonawcy</h3>
+        <p class="clause"><span class="n">1.</span><span>Zleceniobiorca może powierzyć wykonanie części usług wyłącznie podwykonawcom wskazanym poniżej, za których działania lub zaniechania odpowiada jak za własne:</span></p>
+        <p class="sub"><span class="n">a)</span><span>Akademia Kompetencji Cyfrowych Sp. z o.o. z siedzibą w Krakowie – przygotowanie materiałów szkoleniowych i platformy e-learningowej;</span></p>
+        <p class="sub"><span class="n">b)</span><span><mark id="mark-R1" data-risk="R1">Błażej Reiss, prowadzący jednoosobową działalność gospodarczą</mark> – prowadzenie warsztatów stacjonarnych dla zespołów księgowych w Łodzi;</span></p>
+        <p class="sub"><span class="n">c)</span><span>DataBridge Consulting Sp. z o.o. z siedzibą w Poznaniu – wsparcie techniczne integracji z API KSeF.</span></p>
+        <p class="clause"><span class="n">2.</span><span>Zmiana lub dodanie podwykonawcy wymaga uprzedniej pisemnej zgody Zleceniodawcy.</span></p>
+      </div>
+      <div class="margin">
+        <button class="note" id="note-R1" data-risk="R1">
+          <span class="nh">Lista sankcyjna <span class="rid">R1</span></span>
+          <p>Podwykonawca figuruje na liście sankcyjnej MSWiA jako „REISS Błażej Bernard” (wpis z 13.09.2024).</p>
+          <p class="rec">Wstrzymać podpisanie, usunąć podmiot z listy podwykonawców i zgłosić sprawę do compliance.</p>
+          <span class="src" style="display:block">Lista MSWiA z 03.11.2026 · ur. 6 września 1979 r. · dopasowanie po imieniu i nazwisku</span>
+        </button>
+      </div>
+    </div>
+
+    <div class="row" id="s7">
+      <div class="text">
+        <h3 class="sec-title"><span class="no">§ 7</span>Kary umowne</h3>
+        <p class="clause"><span class="n">1.</span><span>W przypadku opóźnienia w realizacji szkolenia wskazanego w harmonogramie Zleceniobiorca zapłaci karę umowną w wysokości 1 000 PLN za każdy dzień opóźnienia.</span></p>
+        <p class="clause"><span class="n">2.</span><span>Łączny limit kar umownych nałożonych na Zleceniobiorcę nie może przekroczyć 10% wartości całkowitego wynagrodzenia netto wypłaconego na podstawie Umowy.</span></p>
+      </div>
+      <div class="margin"><div class="ok-note">B2B-KARY <span>· limit 10%</span></div></div>
+    </div>
+
+    <div class="row" id="s8">
+      <div class="text">
+        <h3 class="sec-title"><span class="no">§ 8</span>Poufność i dane osobowe</h3>
+        <p class="clause"><span class="n">1.</span><span>Zleceniobiorca zobowiązuje się zachować w tajemnicy wszelkie informacje uzyskane w związku z realizacją Umowy.</span></p>
+        <p class="clause"><span class="n">2.</span><span>W zakresie, w jakim realizacja Umowy wymagać będzie przetwarzania danych osobowych, Strony zawrą odrębną umowę powierzenia przetwarzania danych zgodną z art. 28 RODO.</span></p>
+      </div>
+      <div class="margin"></div>
+    </div>
+
+    <div class="row" id="s9">
+      <div class="text">
+        <h3 class="sec-title"><span class="no">§ 9</span>Prawo i sąd właściwy</h3>
+        <p class="plain">Umowa podlega prawu polskiemu. Wszelkie spory będą rozstrzygane przez sąd powszechny właściwy miejscowo dla siedziby Zleceniodawcy w Łodzi.</p>
+      </div>
+      <div class="margin"><div class="ok-note">B2B-SAD <span>· sąd w Łodzi</span></div></div>
+    </div>
+
+    <div class="row" id="s10">
+      <div class="text">
+        <h3 class="sec-title"><span class="no">§ 10</span>Postanowienia końcowe</h3>
+        <p class="plain">Umowę sporządzono w dwóch jednobrzmiących egzemplarzach, po jednym dla każdej ze Stron.</p>
+        <div class="sign"><div>Zleceniodawca</div><div>Zleceniobiorca</div></div>
+      </div>
+      <div class="margin"></div>
+    </div>
+  </article>
+</section>
+
+<!-- =========================================== REJESTR -->
+<section id="rejestr" hidden>
+  <div class="ask">
+    <label for="q">Zapytaj rejestr umów</label>
+    <div class="ask-row">
+      <input id="q" value="Znajdź umowy powierzenia bez zapisu o termination_data_policy">
+      <button class="btn">Szukaj w rejestrze</button>
+    </div>
+    <div class="suggest">
+      <button class="linkbtn">Umowy zatwierdzone mimo czerwonych odstępstw</button>
+      <button class="linkbtn">DPA ze zgłoszeniem naruszeń powyżej 24 h</button>
+      <button class="linkbtn">B2B z limitem kar powyżej 10%</button>
+    </div>
+  </div>
+
+  <div class="answer">
+    <p>Znaleziono jedną umowę powierzenia bez obowiązku usunięcia danych po zakończeniu współpracy: <b>TWOJ_ULUBIONY_TELEMARKETER_2026</b>. W polu termination_data_policy widnieje „No deletion”, a standard Grupy Pelion wymaga usunięcia lub zwrotu danych do 30 dni. Umowa ma status APPROVED, choć narusza też termin zgłaszania naruszeń i limit odpowiedzialności.</p>
+    <div>
+      <div class="sql-l">Zapytanie wygenerowane przez agenta · SQLite</div>
+      <pre class="sql">SELECT file_name, contractor, termination_data_policy, usuwanie_danych
+FROM umowy
+WHERE typ = 'DPA' AND usuwanie_danych = 0</pre>
+    </div>
+  </div>
+
+  <table class="ledger">
+    <caption>Wynik i pozostałe umowy w rejestrze</caption>
+    <thead><tr><th>Kontrahent</th><th>Typ</th><th>Status</th><th>Podpisana</th><th>Odstępstwa od zasad</th></tr></thead>
+    <tbody>
+      <tr class="hit">
+        <td><div class="who">TWOJ ULUBIONY TELEMARKETER PRO Sp. z o.o.</div><div class="fn">TWOJ_ULUBIONY_TELEMARKETER_2026.txt</div></td>
+        <td>DPA</td><td>APPROVED</td><td class="num">2025-12-31</td>
+        <td>
+          <span class="dev red"><b>Usunięcie danych:</b> No deletion · wymagane ≤ 30 dni</span>
+          <span class="dev red"><b>Zgłoszenie naruszeń:</b> 600 h · wymagane ≤ 24 h</span>
+          <span class="dev red"><b>Limit odpowiedzialności:</b> 200 PLN · wymagane ≥ 100 000 PLN</span>
+          <span class="dev"><b>Dalsze powierzenie:</b> zgoda ogólna</span>
+          <span class="dev"><b>Audyt:</b> tylko audytor zewnętrzny</span>
+        </td>
+      </tr>
+      <tr>
+        <td><div class="who">CallCenter PRO Sp. z o.o.</div><div class="fn">DPA_TeleMarketing_Center_2026.txt</div></td>
+        <td>DPA</td><td>APPROVED_WITH_RESERVATION</td><td class="num">2026-07-05</td>
+        <td><span class="dev"><b>Zgłoszenie naruszeń:</b> 72 h</span><span class="dev"><b>Limit odpowiedzialności:</b> 50 000 PLN</span><span class="dev muted">+ 2 żółte</span></td>
+      </tr>
+      <tr>
+        <td><div class="who">Zalewski Cloud Architect</div><div class="fn">B2B_Cloud_Architect_Zalewski_2026.txt</div></td>
+        <td>B2B</td><td>APPROVED_WITH_RESERVATION</td><td class="num">2026-06-01</td>
+        <td><span class="dev"><b>Kary umowne:</b> limit 15%</span></td>
+      </tr>
+      <tr>
+        <td><div class="who">Impuls HR Sp. z o.o.</div><div class="fn">DPA_Impuls_HR_Systems_2025.txt</div></td>
+        <td>DPA</td><td>APPROVED</td><td class="num">2025-01-15</td>
+        <td><span class="dev"><b>Zgłoszenie naruszeń:</b> 48 h</span><span class="dev"><b>Dalsze powierzenie:</b> zgoda ogólna</span></td>
+      </tr>
+      <tr>
+        <td><div class="who">Kowalski IT Consulting</div><div class="fn">B2B_Java_Developer_Kowalski_2024.txt</div></td>
+        <td>B2B</td><td>APPROVED</td><td class="num">2024-02-01</td>
+        <td class="muted">zgodna</td>
+      </tr>
+    </tbody>
+  </table>
+</section>
+</main>
+
+<script>
+  const tabs = document.querySelectorAll(".tab");
+  tabs.forEach((t) => t.addEventListener("click", () => {
+    tabs.forEach((x) => x.setAttribute("aria-selected", String(x === t)));
+    document.getElementById("analiza").hidden = t.dataset.view !== "analiza";
+    document.getElementById("rejestr").hidden = t.dataset.view !== "rejestr";
+  }));
+
+  const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
+  function flash(el) { el.classList.remove("flash"); void el.offsetWidth; el.classList.add("flash"); }
+  function focusRisk(id, from) {
+    document.querySelectorAll("mark, .note").forEach((e) => e.classList.toggle("on", e.dataset.risk === id));
+    const target = from === "note" ? document.getElementById("mark-" + id) : document.getElementById("note-" + id);
+    target.scrollIntoView({ block: "center", behavior: reduce ? "auto" : "smooth" });
+    flash(target);
+  }
+  document.querySelectorAll(".note").forEach((n) => n.addEventListener("click", () => focusRisk(n.dataset.risk, "note")));
+  document.querySelectorAll("mark[data-risk]").forEach((m) => m.addEventListener("click", () => focusRisk(m.dataset.risk, "mark")));
+  document.querySelectorAll("[data-goto]").forEach((b) => b.addEventListener("click", () => {
+    const id = b.dataset.goto;
+    if (id.startsWith("R")) return focusRisk(id, "note");
+    const el = document.getElementById(id);
+    el.scrollIntoView({ block: "start", behavior: reduce ? "auto" : "smooth" });
+    flash(el.querySelector(".text"));
+  }));
+</script>
+</body>
+</html>

@@ -1,0 +1,21 @@
+UMOWA O ŚWIADCZENIE USŁUG B2B (LCAI - RED)
+
+Zawarta pomiędzy:
+epruf S.A. z siedzibą w Łodzi (Zleceniodawca)
+a
+InnoSoftware Sp. z o.o. z siedzibą w Warszawie (Zleceniobiorca).
+
+§ 1 PRZEDMIOT UMOWY
+Wdrożenie dedykowanych algorytmów sztucznej inteligencji do analizy dokumentacji.
+
+§ 2 PRZENIESIENIE PRAW AUTORSKICH (⚠️ RED RISK - LICENSE ONLY, NO IP TRANSFER)
+Wszelkie prawa autorskie oraz własność intelektualna do wytworzonych algorytmów i oprogramowania pozostają wyłączną własnością Zleceniobiorcy. Zleceniodawca otrzymuje jedynie niewyłączną, ograniczoną licencję na korzystanie z oprogramowania przez okres 12 miesięcy w celach wewnętrznych.
+
+§ 3 ZAKAZ KONKURENCJI (⚠️ RED RISK - NO NON-COMPETE CLAUSE)
+Niniejsza umowa nie nakłada na Zleceniobiorcę żadnych ograniczeń w zakresie prowadzenia działalności konkurencyjnej. Zleceniobiorca jest uprawniony do świadczenia identycznych lub podobnych usług na rzecz podmiotów konkurencyjnych wobec epruf S.A. oraz całej Grupy Pelion w trakcie trwania umowy.
+
+§ 4 ODPOWIEDZIALNOŚĆ I KARY (⚠️ RED RISK - CONTRACTUAL PENALTIES EXCLUDED)
+Strony całkowicie wyłączają możliwość naliczania jakichkolwiek kar umownych. Zleceniobiorca odpowiada za niewykonanie lub nienależyte wykonanie umowy wyłącznie do wysokości rzeczywistej szkody (damnum emergens), z wyłączeniem utraconych korzyści, przy czym łączna odpowiedzialność Zleceniobiorcy jest ograniczona do kwoty 1 000 PLN.
+
+§ 5 JURYSDYKCJA (⚠️ RED RISK - UNFAVORABLE JURISDICTION)
+Niniejsza umowa podlega prawu polskiemu. Wszelkie spory mogące wyniknąć z niniejszej umowy będą rozstrzygane wyłącznie przez sąd powszechny właściwy miejscowo dla siedziby Zleceniobiorcy w Warszawie.

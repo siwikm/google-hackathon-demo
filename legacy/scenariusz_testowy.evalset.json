@@ -1,0 +1,46 @@
+{
+  "eval_set_id": "scenariusz_testowy",
+  "name": "Scenariusz testowy LCAI",
+  "description": "Smoke test: agent musi pobrać listę kontrolną i zwrócić raport compliance dla krótkiej umowy.",
+  "eval_cases": [
+    {
+      "eval_id": "umowa_serwisowa_ryzyko_krytyczne",
+      "conversation": [
+        {
+          "invocation_id": "inv-1",
+          "user_content": {
+            "role": "user",
+            "parts": [
+              {
+                "text": "Zweryfikuj poniższą umowę pod kątem zgodności z listą kontrolną Grupy Pelion.\n\nUMOWA O ŚWIADCZENIE USŁUG IT\n§1. Wykonawca świadczy usługi utrzymania systemu CRM, w ramach którego przetwarza dane osobowe klientów Zamawiającego.\n§2. Dostępność usługi wynosi 99,5% w skali miesiąca. Czas reakcji na awarię krytyczną: 4 godziny.\n§3. Za każdy dzień opóźnienia Wykonawca zapłaci karę umowną w wysokości 1% wynagrodzenia netto.\n§4. Każda ze stron może wypowiedzieć umowę z zachowaniem 3-miesięcznego okresu wypowiedzenia ze skutkiem na koniec miesiąca."
+              }
+            ]
+          },
+          "final_response": {
+            "role": "model",
+            "parts": [
+              {
+                "text": "{\"status_ogolny\": \"RYZYKO_KRYTYCZNE\", \"analiza_szczegolowa\": [{\"kategoria\": \"Kary Umowne\", \"status_ryzyka\": \"CZERWONY\", \"cytat_z_umowy\": \"Za każdy dzień opóźnienia Wykonawca zapłaci karę umowną w wysokości 1% wynagrodzenia netto.\", \"uzasadnienie_i_ryzyko\": \"Brak górnego limitu kar umownych.\", \"proponowana_korekta\": \"Łączna wysokość kar umownych nie może przekroczyć 20% wynagrodzenia netto z umowy.\"}, {\"kategoria\": \"SLA\", \"status_ryzyka\": \"ZOLTY\", \"cytat_z_umowy\": \"Dostępność usługi wynosi 99,5% w skali miesiąca.\", \"uzasadnienie_i_ryzyko\": \"Dostępność niższa niż wymagane 99,9%.\", \"proponowana_korekta\": \"Dostępność usługi wynosi min. 99,9% w skali miesiąca.\"}, {\"kategoria\": \"RODO\", \"status_ryzyka\": \"CZERWONY\", \"cytat_z_umowy\": \"Wykonawca ... przetwarza dane osobowe klientów Zamawiającego.\", \"uzasadnienie_i_ryzyko\": \"Brak umowy powierzenia zgodnej z art. 28 RODO.\", \"proponowana_korekta\": \"Strony zawierają umowę powierzenia przetwarzania danych osobowych zgodną z art. 28 RODO.\"}, {\"kategoria\": \"Wypowiedzenie\", \"status_ryzyka\": \"ZIELONY\", \"cytat_z_umowy\": \"Każda ze stron może wypowiedzieć umowę z zachowaniem 3-miesięcznego okresu wypowiedzenia ze skutkiem na koniec miesiąca.\", \"uzasadnienie_i_ryzyko\": \"Zapis zgodny ze standardem.\", \"proponowana_korekta\": \"Brak zmian.\"}], \"podsumowanie_menedzerskie\": \"Umowa wymaga zmian przed podpisaniem: brak limitu kar umownych i brak umowy powierzenia danych osobowych. SLA poniżej standardu Grupy.\"}"
+              }
+            ]
+          },
+          "intermediate_data": {
+            "tool_uses": [
+              {
+                "name": "pobierz_liste_kontrolna",
+                "args": {}
+              }
+            ],
+            "tool_responses": [],
+            "intermediate_responses": []
+          }
+        }
+      ],
+      "session_input": {
+        "app_name": "google_demo",
+        "user_id": "eval_user",
+        "state": {}
+      }
+    }
+  ]
+}

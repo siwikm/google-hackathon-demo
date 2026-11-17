@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Weryfikacja umów — LCAI</title>
+<style>
+  :root {
+    --bg: #f5f6f8; --card: #fff; --line: #e3e6ea; --text: #1d2228; --muted: #6b7380;
+    --accent: #2453d4; --ok: #1f7a46; --ok-bg: #e5f4ea; --warn: #8a5a00; --warn-bg: #fdf1d8;
+    --bad: #b42318; --bad-bg: #fde8e6; --neutral-bg: #eceef2;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--text); font: 15px/1.5 system-ui, -apple-system, "Segoe UI", sans-serif; }
+  main { max-width: 980px; margin: 0 auto; padding: 24px 16px 80px; }
+  h1 { font-size: 20px; margin: 0; }
+  h2 { font-size: 16px; margin: 0; }
+  .sub { color: var(--muted); margin: 4px 0 0; }
+  button { font: inherit; border: 1px solid var(--line); background: #fff; color: var(--text); border-radius: 6px; padding: 6px 12px; cursor: pointer; }
+  button:hover:not(:disabled) { border-color: #c5cad2; }
+  button.primary { background: var(--accent); border-color: var(--accent); color: #fff; }
+  button:disabled { opacity: .55; cursor: default; }
+  button.small { font-size: 12px; padding: 2px 8px; }
+  .panel { background: var(--card); border: 1px solid var(--line); border-radius: 10px; padding: 16px; margin-top: 16px; }
+  textarea { width: 100%; min-height: 220px; resize: vertical; font: inherit; font-size: 14px; border: 1px solid var(--line); border-radius: 6px; padding: 10px 12px; }
+  textarea:focus { outline: 2px solid color-mix(in srgb, var(--accent) 35%, transparent); border-color: var(--accent); }
+  .row { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; margin-top: 10px; }
+  .grow { flex: 1; }
+  .file { font-size: 13px; color: var(--muted); }
+  .status { color: var(--muted); font-size: 14px; }
+  .error { border-color: #f1b8b2; background: var(--bad-bg); color: var(--bad); }
+  .badge { display: inline-block; font-size: 12px; font-weight: 600; padding: 2px 8px; border-radius: 999px; white-space: nowrap; }
+  .ok { background: var(--ok-bg); color: var(--ok); }
+  .warn { background: var(--warn-bg); color: var(--warn); }
+  .bad { background: var(--bad-bg); color: var(--bad); }
+  .neutral { background: var(--neutral-bg); color: var(--muted); }
+  .overall { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+  .overall .badge { font-size: 14px; padding: 4px 12px; }
+  .counts { display: flex; gap: 6px; margin-left: auto; }
+  .summary { margin: 12px 0 0; }
+  .item { background: var(--card); border: 1px solid var(--line); border-left: 4px solid var(--line); border-radius: 10px; padding: 14px 16px; margin-top: 12px; }
+  .item.bad { border-left-color: var(--bad); } .item.warn { border-left-color: #e9a23b; } .item.ok { border-left-color: var(--ok); }
+  .item.bad, .item.warn, .item.ok { background: var(--card); color: var(--text); }
+  .item-head { display: flex; align-items: center; gap: 10px; }
+  .label { color: var(--muted); font-size: 12px; text-transform: uppercase; letter-spacing: .03em; margin: 12px 0 2px; }
+  blockquote { margin: 0; padding: 6px 12px; border-left: 3px solid var(--line); color: #3d444d; background: #fafbfc; white-space: pre-wrap; }
+  .fix { background: #f3f6fd; border: 1px solid #d8e1f7; border-radius: 6px; padding: 8px 12px; white-space: pre-wrap; }
+  .label-row { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin: 12px 0 2px; }
+  .label-row .label { margin: 0; }
+  details summary { cursor: pointer; color: var(--muted); font-size: 13px; }
+  table { width: 100%; border-collapse: collapse; font-size: 13px; margin-top: 8px; }
+  th, td { text-align: left; padding: 6px 8px; border-top: 1px solid var(--line); vertical-align: top; }
+  th { color: var(--muted); font-weight: 600; }
+  pre { font: 12px/1.45 ui-monospace, Menlo, monospace; background: #f3f4f7; border: 1px solid var(--line); border-radius: 6px; padding: 10px; overflow-x: auto; white-space: pre-wrap; }
+  [hidden] { display: none !important; }
+</style>
+</head>
+<body>
+<main>
+  <h1>Weryfikacja umów</h1>
+  <p class="sub">Agent compliance Grupy Pelion: porównuje umowę z listą kontrolną i proponuje poprawki.</p>
+
+  <section class="panel">
+    <form id="form">
+      <textarea id="tekst" name="tekst" placeholder="Wklej treść umowy albo dodaj plik PDF / DOCX / TXT…"></textarea>
+      <div class="row">
+        <input type="file" id="plik" name="plik" accept=".pdf,.docx,.txt,.md" class="file">
+        <span class="grow"></span>
+        <button type="button" id="sample">Wstaw przykładową umowę</button>
+        <button type="button" id="clear">Wyczyść</button>
+        <button type="submit" class="primary" id="submit">Weryfikuj</button>
+      </div>
+      <div class="row"><span class="status" id="status"></span></div>
+    </form>
+    <details id="checklist">
+      <summary>Lista kontrolna (<span id="checklist-count">…</span>)</summary>
+      <table><thead><tr><th>Kategoria</th><th>Standard Grupy Pelion</th><th>Krytyczność</th></tr></thead><tbody></tbody></table>
+    </details>
+  </section>
+
+  <section class="panel error" id="error" hidden></section>
+
+  <section id="result" hidden>
+    <div class="panel">
+      <div class="overall">
+        <h2>Wynik</h2>
+        <span class="badge" id="overall"></span>
+        <span class="counts" id="counts"></span>
+      </div>
+      <p class="summary" id="summary"></p>
+    </div>
+    <div id="items"></div>
+    <details class="panel"><summary>Surowy JSON</summary><pre id="raw"></pre></details>
+  </section>
+</main>
+
+<script>
+const SAMPLE = `UMOWA O ŚWIADCZENIE USŁUG IT
+§1. Wykonawca świadczy usługi utrzymania systemu CRM, w ramach którego przetwarza dane osobowe klientów Zamawiającego.
+§2. Dostępność usługi wynosi 99,5% w skali miesiąca. Czas reakcji na awarię krytyczną: 4 godziny.
+§3. Za każdy dzień opóźnienia Wykonawca zapłaci karę umowną w wysokości 1% wynagrodzenia netto.
+§4. Każda ze stron może wypowiedzieć umowę z zachowaniem 3-miesięcznego okresu wypowiedzenia ze skutkiem na koniec miesiąca.`;
+
+const $ = (id) => document.getElementById(id);
+
+// Status names from the model may come with or without Polish diacritics (ŻÓŁTY / ZOLTY).
+const norm = (s) => (s || "").toUpperCase().replace(/Ł/g, "L").normalize("NFD").replace(/[̀-ͯ]/g, "").trim();
+const TONE = { ZIELONY: "ok", ZOLTY: "warn", CZERWONY: "bad", ZGODNY: "ok", WYMAGA_ZMIAN: "warn", RYZYKO_KRYTYCZNE: "bad" };
+const LABEL = { ZIELONY: "Zielony", ZOLTY: "Żółty", CZERWONY: "Czerwony", ZGODNY: "Zgodna", WYMAGA_ZMIAN: "Wymaga zmian", RYZYKO_KRYTYCZNE: "Ryzyko krytyczne" };
+const tone = (s) => TONE[norm(s)] || "neutral";
+const label = (s) => LABEL[norm(s)] || s || "—";
+
+function el(tag, attrs = {}, ...children) {
+  const node = document.createElement(tag);
+  for (const [k, v] of Object.entries(attrs)) k === "class" ? (node.className = v) : node.setAttribute(k, v);
+  for (const c of children) node.append(c);
+  return node;
+}
+const badge = (s) => el("span", { class: `badge ${tone(s)}` }, label(s));
+
+function render(r) {
+  const overall = $("overall");
+  overall.className = `badge ${tone(r.status_ogolny)}`;
+  overall.textContent = label(r.status_ogolny);
+  $("summary").textContent = r.podsumowanie_menedzerskie;
+
+  const order = { bad: 0, warn: 1, ok: 2, neutral: 3 };
+  const items = [...r.analiza_szczegolowa].sort((a, b) => order[tone(a.status_ryzyka)] - order[tone(b.status_ryzyka)]);
+
+  const counts = $("counts");
+  counts.replaceChildren();
+  for (const [s, t] of [["CZERWONY", "bad"], ["ZOLTY", "warn"], ["ZIELONY", "ok"]]) {
+    const n = items.filter((i) => tone(i.status_ryzyka) === t).length;
+    if (n) counts.append(el("span", { class: `badge ${t}` }, `${label(s)}: ${n}`));
+  }
+
+  $("items").replaceChildren(...items.map((i) => {
+    const copy = el("button", { type: "button", class: "small" }, "Kopiuj");
+    copy.onclick = async () => {
+      await navigator.clipboard.writeText(i.proponowana_korekta);
+      copy.textContent = "Skopiowano";
+      setTimeout(() => (copy.textContent = "Kopiuj"), 1500);
+    };
+    return el("article", { class: `item ${tone(i.status_ryzyka)}` },
+      el("div", { class: "item-head" }, el("h2", {}, i.kategoria), badge(i.status_ryzyka)),
+      el("div", { class: "label" }, "Cytat z umowy"), el("blockquote", {}, i.cytat_z_umowy),
+      el("div", { class: "label" }, "Uzasadnienie i ryzyko"), el("div", {}, i.uzasadnienie_i_ryzyko),
+      el("div", { class: "label-row" }, el("span", { class: "label" }, "Proponowana korekta"), copy),
+      el("div", { class: "fix" }, i.proponowana_korekta),
+    );
+  }));
+
+  $("raw").textContent = JSON.stringify(r, null, 2);
+  $("result").hidden = false;
+}
+
+$("form").onsubmit = async (e) => {
+  e.preventDefault();
+  $("error").hidden = true;
+  $("result").hidden = true;
+  $("submit").disabled = true;
+  const started = Date.now();
+  const tick = () => ($("status").textContent = `Analiza trwa… ${Math.round((Date.now() - started) / 1000)} s (zwykle 20–40 s)`);
+  tick();
+  const timer = setInterval(tick, 1000);
+  try {
+    const res = await fetch("/api/weryfikuj", { method: "POST", body: new FormData($("form")) });
+    const body = await res.json().catch(() => ({}));
+    if (!res.ok) throw new Error(body.detail || `HTTP ${res.status}`);
+    render(body);
+    $("status").textContent = `Gotowe w ${Math.round((Date.now() - started) / 1000)} s.`;
+  } catch (err) {
+    $("error").textContent = err.message;
+    $("error").hidden = false;
+    $("status").textContent = "";
+  } finally {
+    clearInterval(timer);
+    $("submit").disabled = false;
+  }
+};
+
+$("sample").onclick = () => { $("tekst").value = SAMPLE; };
+$("clear").onclick = () => { $("form").reset(); $("result").hidden = true; $("error").hidden = true; $("status").textContent = ""; };
+
+fetch("/api/lista-kontrolna").then((r) => r.json()).then((rows) => {
+  const n = rows.length, last = n % 10, tens = n % 100;
+  const word = n === 1 ? "wymaganie" : last >= 2 && last <= 4 && (tens < 12 || tens > 14) ? "wymagania" : "wymagań";
+  $("checklist-count").textContent = `${n} ${word}`;
+  document.querySelector("#checklist tbody").replaceChildren(...rows.map((r) =>
+    el("tr", {}, el("td", {}, r.kategoria), el("td", {}, r.standard_grupy_pelion), el("td", {}, r.krytycznosc))));
+});
+</script>
+</body>
+</html>

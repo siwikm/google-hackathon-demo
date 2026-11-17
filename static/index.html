@@ -1,0 +1,1358 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>LCAI · Weryfikacja umów</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Newsreader:opsz,wght@6..72,400;6..72,500;6..72,600&family=Spline+Sans+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+/* Hallmark · macrostructure: Long Document (app: contract sheet + agent margin notes) · design: mockups/d_lcai_dokument.html
+ * theme: studied-DNA (LCAI first version) · graphite #42454C · lime #ADDA43 · sky #00ACE9 · navy #005BA9
+ * fonts: Manrope (UI) + Newsreader (contract) + Spline Sans Mono (numbers)
+ */
+:root {
+  --color-graphite:   oklch(39% 0.012 267);
+  --color-graphite-2: oklch(33% 0.012 267);
+  --color-fill:       oklch(96.1% 0 0);
+  --color-white:      oklch(99.6% 0.002 250);
+  --color-lime:       oklch(82.9% 0.181 125);
+  --color-lime-hover: oklch(78% 0.18 125);
+  --color-lime-2:     oklch(96.1% 0.051 120);
+  --color-lime-ink:   oklch(51.8% 0.13 130);
+  --color-sky:        oklch(70% 0.145 233);
+  --color-sky-2:      oklch(95.5% 0.03 233);
+  --color-navy:       oklch(47.1% 0.145 253);
+  --color-risk:       oklch(54.3% 0.174 30);
+  --color-risk-2:     oklch(93.3% 0.031 30);
+  --color-risk-mark:  oklch(89% 0.06 30);
+  --color-warn:       oklch(62% 0.14 65);
+  --color-warn-2:     oklch(96% 0.05 90);
+  --color-warn-mark:  oklch(91% 0.09 90);
+  --color-ink:        oklch(30% 0.012 267);
+  --color-ink-2:      oklch(39% 0.012 267);
+  --color-muted:      oklch(50% 0.018 270);
+  --color-rule:       oklch(89.6% 0.009 258);
+  --color-on-dark:    oklch(88% 0.008 267);
+  --color-focus:      oklch(70% 0.145 233);
+
+  --font-ui:   "Manrope", Arial, sans-serif;
+  --font-doc:  "Newsreader", Georgia, serif;
+  --font-mono: "Spline Sans Mono", ui-monospace, monospace;
+
+  --space-3xs: 0.25rem; --space-2xs: 0.5rem; --space-xs: 0.75rem; --space-sm: 1rem;
+  --space-md: 1.5rem; --space-lg: 2rem; --space-xl: 3rem; --space-2xl: 4.5rem;
+  --text-xs: 0.75rem; --text-sm: 0.875rem; --text-md: 1.0625rem; --text-lg: 1.25rem;
+  --text-xl: 1.75rem; --text-num: clamp(3.5rem, 6vw + 1rem, 6rem);
+
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --dur-short: 200ms;
+  --radius: 10px; --radius-lg: 16px; --radius-pill: 999px;
+  --margin-col: 300px;
+  --sheet-pad: clamp(1rem, 3vw, 3rem);
+}
+* { box-sizing: border-box; }
+html, body { overflow-x: clip; }
+body { margin: 0; background: var(--color-fill); color: var(--color-ink); font: 400 var(--text-sm)/1.55 var(--font-ui); }
+button { font: inherit; color: inherit; }
+:focus-visible { outline: 2px solid var(--color-focus); outline-offset: 2px; }
+[hidden] { display: none !important; }
+.num { font-variant-numeric: tabular-nums; }
+.mono { font-family: var(--font-mono); }
+
+/* ---------- masthead */
+.top { background: var(--color-graphite); color: var(--color-white); }
+.top-in { max-width: 1240px; margin: 0 auto; padding: var(--space-xs) var(--space-md); display: flex; align-items: center; gap: var(--space-lg); flex-wrap: wrap; }
+.brand { display: flex; align-items: center; gap: var(--space-xs); flex: none; white-space: nowrap; }
+.logo { width: 42px; height: 42px; border-radius: 12px; background: var(--color-lime); display: grid; place-content: center; text-align: center; flex: none; }
+.logo b { display: block; color: var(--color-graphite); font: 800 16px/1 var(--font-ui); letter-spacing: -0.06em; }
+.logo i { display: block; font-style: normal; color: var(--color-navy); font: 800 11px/1 var(--font-ui); margin-top: 2px; }
+.brand .wm { font: 800 var(--text-lg)/1 var(--font-ui); letter-spacing: -0.03em; }
+.brand .tagline { font-size: var(--text-xs); color: var(--color-on-dark); font-weight: 600; margin-top: 3px; }
+.tabs { display: flex; gap: var(--space-3xs); }
+.tab { background: none; border: 0; border-radius: var(--radius); padding: var(--space-2xs) var(--space-sm); cursor: pointer; color: var(--color-white); white-space: nowrap; font-weight: 500; }
+.tab:hover { background: var(--color-graphite-2); }
+.tab[aria-selected="true"] { background: var(--color-lime); color: var(--color-graphite); font-weight: 800; }
+.file { margin-left: auto; display: flex; align-items: center; gap: var(--space-sm); color: var(--color-on-dark); min-width: 0; }
+.file b { color: var(--color-white); font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 28ch; }
+.brandbar { height: 4px; background: linear-gradient(90deg, var(--color-lime) 0 72%, var(--color-sky) 72% 86%, var(--color-navy) 86% 100%); }
+
+.btn { background: var(--color-lime); color: var(--color-graphite); border: 0; border-radius: var(--radius); padding: var(--space-2xs) var(--space-sm); font-weight: 800; cursor: pointer; white-space: nowrap; }
+.btn:hover:not(:disabled) { background: var(--color-lime-hover); }
+.btn:active:not(:disabled) { transform: translateY(1px); }
+.btn:disabled { opacity: 0.55; cursor: default; }
+.btn.big { padding: var(--space-xs) var(--space-lg); font-size: var(--text-md); }
+.btn-line { background: var(--color-white); color: var(--color-graphite); border: 1px solid var(--color-rule); border-radius: var(--radius); padding: var(--space-2xs) var(--space-sm); font-weight: 700; cursor: pointer; white-space: nowrap; }
+.btn-line:hover { border-color: var(--color-lime); background: var(--color-lime-2); }
+
+/* ---------- loader panel */
+.loader { background: var(--color-white); border-bottom: 1px solid var(--color-rule); }
+.loader-in { max-width: 1240px; margin: 0 auto; padding: var(--space-md); display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: var(--space-md); align-items: start; }
+.loader h2 { font: 800 var(--text-sm) var(--font-ui); color: var(--color-graphite); margin: 0 0 var(--space-xs); }
+.samples { display: flex; flex-wrap: wrap; gap: var(--space-2xs); }
+.sample { border: 1px solid var(--color-rule); background: var(--color-fill); border-radius: var(--radius-pill); padding: var(--space-3xs) var(--space-sm); cursor: pointer; font-size: var(--text-sm); white-space: nowrap; }
+.sample:hover { border-color: var(--color-lime); background: var(--color-lime-2); }
+.sample.demo { background: var(--color-lime-2); border-color: var(--color-lime); font-weight: 700; }
+.upload { display: flex; flex-direction: column; gap: var(--space-2xs); align-items: flex-start; }
+.upload input { position: absolute; width: 1px; height: 1px; opacity: 0; }
+.upload .hint { font-size: var(--text-xs); color: var(--color-muted); }
+.upload label { cursor: pointer; }
+.upload input:focus-visible + label { outline: 2px solid var(--color-focus); outline-offset: 2px; }
+
+main { max-width: 1240px; margin: 0 auto; padding: 0 var(--space-md) var(--space-2xl); }
+
+/* ---------- verdict */
+.verdict { display: grid; grid-template-columns: auto minmax(0, 1.4fr) minmax(0, 1fr); gap: var(--space-xl); padding: var(--space-xl) 0 var(--space-lg); align-items: start; }
+.score .num { font: 800 var(--text-num)/0.9 var(--font-ui); letter-spacing: -0.05em; color: var(--color-risk); min-width: 2.2ch; }
+.score .num.idle { color: var(--color-rule); }
+.score .num.lvl-low { color: var(--color-lime-ink); } .score .num.lvl-mid { color: var(--color-warn); }
+.score .num small { font-size: 0.3em; color: var(--color-muted); letter-spacing: 0; font-weight: 600; }
+.score .lbl { display: inline-block; margin-top: var(--space-xs); font-weight: 800; font-size: var(--text-xs); border-radius: var(--radius-pill); padding: 4px 12px; letter-spacing: 0.02em; background: var(--color-risk-2); color: var(--color-risk); }
+.score .lbl.lvl-low { background: var(--color-lime-2); color: var(--color-lime-ink); }
+.score .lbl.lvl-mid { background: var(--color-warn-2); color: var(--color-warn); }
+.score .lbl.idle { background: var(--color-white); color: var(--color-muted); border: 1px solid var(--color-rule); }
+.lede h1 { font: 800 var(--text-xl)/1.2 var(--font-ui); margin: 0 0 var(--space-xs); letter-spacing: -0.025em; color: var(--color-graphite); overflow-wrap: anywhere; }
+.lede p { margin: 0; font-size: var(--text-md); line-height: 1.65; color: var(--color-ink-2); max-width: 62ch; }
+.panel { background: var(--color-white); border: 1px solid var(--color-rule); border-radius: var(--radius-lg); padding: var(--space-sm); }
+.panel .cta-note { font-size: var(--text-xs); color: var(--color-muted); margin-top: var(--space-xs); }
+.checks { list-style: none; margin: 0; padding: 0; }
+.checks li { padding: var(--space-2xs) 0; border-top: 1px solid var(--color-rule); display: grid; grid-template-columns: 1.1rem minmax(0, 1fr); gap: var(--space-2xs); }
+.checks li:first-child { border-top: 0; padding-top: 0; }
+.checks li:last-child { padding-bottom: 0; }
+.checks .k { font-weight: 800; color: var(--color-graphite); }
+.checks .v { color: var(--color-muted); overflow-wrap: anywhere; }
+.checks .v.bad { color: var(--color-risk); }
+.dot { width: 0.7rem; height: 0.7rem; margin-top: 0.35rem; border-radius: 50%; background: var(--color-lime); }
+.dot.bad { background: var(--color-risk); } .dot.warn { background: var(--color-warn); } .dot.info { background: var(--color-sky); }
+.dot.run { background: none; border: 2px solid var(--color-rule); border-top-color: var(--color-navy); animation: spin 0.8s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+.errbox { color: var(--color-risk); font-weight: 600; margin-top: var(--space-xs); overflow-wrap: anywhere; }
+
+/* ---------- key terms */
+.terms { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 1px; background: var(--color-rule); border: 1px solid var(--color-rule); border-radius: var(--radius-lg); overflow: hidden; }
+.term { padding: var(--space-sm); border: 0; background: var(--color-white); text-align: left; cursor: pointer; display: flex; flex-direction: column; align-items: flex-start; }
+.term:hover .tv { color: var(--color-navy); }
+.term .tk { font-size: var(--text-xs); color: var(--color-muted); font-weight: 700; }
+.term .tv { font: 600 var(--text-sm)/1.4 var(--font-ui); margin-top: var(--space-3xs); color: var(--color-graphite); transition: color var(--dur-short) var(--ease-out);
+  display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 3; line-clamp: 3; overflow: hidden; }
+.term .tv.mono { font: 500 var(--text-sm) var(--font-mono); }
+.flag { display: inline-block; margin-top: var(--space-2xs); font-size: var(--text-xs); font-weight: 800; border-radius: var(--radius-pill); padding: 2px 10px; color: var(--color-risk); background: var(--color-risk-2); }
+.flag.ok { color: var(--color-lime-ink); background: var(--color-lime-2); }
+
+/* ---------- contract sheet + margin */
+.doc { padding-top: var(--space-xl); }
+.row { display: grid; grid-template-columns: minmax(0, 1fr) var(--margin-col); column-gap: var(--space-xl); }
+.text { background: var(--color-white); border-inline: 1px solid var(--color-rule); padding: 0 var(--sheet-pad); font: 400 var(--text-md)/1.7 var(--font-doc); color: var(--color-ink); min-width: 0; }
+.text > * { max-width: 70ch; }
+.row.first .text { border-top: 1px solid var(--color-rule); border-radius: var(--radius-lg) var(--radius-lg) 0 0; padding: 0; overflow: hidden; }
+.row.last .text { border-bottom: 1px solid var(--color-rule); border-radius: 0 0 var(--radius-lg) var(--radius-lg); padding-bottom: var(--sheet-pad); }
+.band { display: flex; flex-direction: column; gap: 2px; padding: var(--space-md) var(--sheet-pad); color: var(--color-white); font-family: var(--font-ui); max-width: none;
+  background: linear-gradient(120deg, var(--color-graphite) 0 66%, var(--color-lime) 66% 80%, var(--color-navy) 80% 100%); }
+.band strong { font: 800 var(--text-lg)/1.1 var(--font-ui); letter-spacing: -0.02em; }
+.band span { font-size: var(--text-xs); font-weight: 600; color: var(--color-on-dark); max-width: 60%; overflow-wrap: anywhere; }
+.title { text-align: center; padding: var(--space-lg) var(--sheet-pad) 0; max-width: none; }
+.title h2 { font: 600 var(--text-lg)/1.3 var(--font-doc); margin: 0; color: var(--color-graphite); letter-spacing: 0.01em; overflow-wrap: anywhere; }
+.title .meta { color: var(--color-muted); margin-top: var(--space-3xs); }
+.margin-head { font-size: var(--text-xs); font-weight: 800; color: var(--color-graphite); align-self: end; padding-bottom: var(--space-2xs); border-bottom: 2px solid var(--color-graphite); display: flex; gap: var(--space-2xs); align-items: center; }
+.margin-head::before { content: ""; width: 0.6rem; height: 0.6rem; border-radius: 3px; background: var(--color-lime); }
+.parties { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: var(--space-md); margin: var(--space-lg) 0 var(--space-xs); }
+.party { border-top: 3px solid var(--color-graphite); padding-top: var(--space-xs); }
+.party .role { font: 800 var(--text-xs) var(--font-ui); color: var(--color-navy); }
+.pre { margin: var(--space-sm) 0 0; color: var(--color-ink-2); }
+.pre.join { text-align: center; color: var(--color-muted); }
+.cells { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: var(--space-3xs) var(--space-sm); padding: var(--space-2xs) 0; border-top: 1px solid var(--color-rule); font-size: var(--text-sm); }
+.cells span { min-width: 0; overflow-wrap: anywhere; }
+.cells span:nth-child(odd) { color: var(--color-muted); }
+.sec-title { font: 600 var(--text-md)/1.4 var(--font-doc); margin: 0; padding: var(--space-lg) 0 var(--space-2xs); color: var(--color-graphite); }
+.sec-title .no { color: var(--color-navy); font-weight: 600; margin-right: var(--space-2xs); }
+.clause { display: grid; grid-template-columns: 1.6rem minmax(0, 1fr); margin: 0 0 var(--space-2xs); }
+.clause .n, .sub .n { color: var(--color-muted); font-variant-numeric: tabular-nums; }
+.sub { display: grid; grid-template-columns: 1.4rem minmax(0, 1fr); margin: var(--space-3xs) 0 var(--space-3xs) 1.6rem; }
+.plain { margin: 0 0 var(--space-2xs); }
+.blk { border-radius: 4px; scroll-margin: 40vh 0; }
+.blk.flag-red { background: var(--color-risk-2); } .blk.flag-yellow { background: var(--color-warn-2); }
+.sign { margin-top: var(--space-xl); color: var(--color-muted); font-size: var(--text-sm); border-top: 1px solid var(--color-ink-2); padding-top: var(--space-3xs); }
+mark { color: inherit; padding: 0.05em 0.15em; border-radius: 4px; cursor: pointer; box-decoration-break: clone; -webkit-box-decoration-break: clone; background: var(--color-risk-mark); scroll-margin: 40vh 0; }
+mark.y { background: var(--color-warn-mark); }
+mark:hover, mark.on { background: var(--color-risk); color: var(--color-white); }
+mark.y:hover, mark.y.on { background: var(--color-warn); color: var(--color-white); }
+
+.margin { padding-top: var(--space-lg); display: flex; flex-direction: column; gap: var(--space-2xs); }
+.ok-note { font-size: var(--text-xs); color: var(--color-lime-ink); font-weight: 700; display: flex; gap: var(--space-2xs); align-items: baseline; padding-top: 0.2rem; }
+.ok-note::before { content: ""; width: 0.6rem; height: 0.6rem; border-radius: 50%; background: var(--color-lime); flex: none; transform: translateY(0.05rem); }
+.ok-note span { color: var(--color-muted); font-weight: 500; }
+.ok-todo { margin: 0.15rem 0 0 calc(0.6rem + var(--space-2xs)); padding-left: var(--space-2xs); border-left: 2px solid var(--color-lime); font-size: var(--text-xs); color: var(--color-ink); }
+.note { display: block; width: 100%; text-align: left; border: 1.5px solid var(--color-risk); background: var(--color-white); padding: var(--space-xs) var(--space-sm); border-radius: var(--radius); cursor: pointer; transition: background var(--dur-short) var(--ease-out); scroll-margin: 30vh 0; }
+.note:hover, .note.on { background: var(--color-risk-2); }
+.note.y { border-color: var(--color-warn); }
+.note.y:hover, .note.y.on { background: var(--color-warn-2); }
+.note .nh { display: flex; gap: var(--space-2xs); align-items: center; font-weight: 800; color: var(--color-risk); font-size: var(--text-xs); }
+.note.y .nh { color: var(--color-warn); }
+.note .nh::before { content: "!"; display: grid; place-items: center; width: 1.1rem; height: 1.1rem; border-radius: 5px; background: var(--color-risk); color: var(--color-white); font-size: 0.7rem; flex: none; }
+.note.y .nh::before { background: var(--color-warn); }
+.note .nh .crit { padding: 0 0.3rem; border-radius: 4px; background: var(--color-risk); color: var(--color-white); font-size: 0.65rem; text-transform: uppercase; letter-spacing: 0.04em; }
+.note .nh .rid { margin-left: auto; font-family: var(--font-mono); font-weight: 400; color: var(--color-muted); }
+.note p { margin: var(--space-2xs) 0 0; font-size: var(--text-sm); color: var(--color-ink); }
+.note .rec { font-weight: 700; }
+.note .src { display: block; color: var(--color-muted); font-size: var(--text-xs); margin-top: var(--space-2xs); border-top: 1px solid var(--color-rule); padding-top: var(--space-2xs); overflow-wrap: anywhere; }
+.flash { animation: flash 1.4s var(--ease-out); }
+@keyframes flash { 0%, 35% { outline: 3px solid var(--color-sky); outline-offset: 3px; } 100% { outline: 3px solid transparent; outline-offset: 3px; } }
+
+/* ---------- registry */
+.ask { padding: var(--space-xl) 0 var(--space-md); }
+.ask label { display: block; font-weight: 800; color: var(--color-graphite); font-size: var(--text-lg); }
+.ask-row { display: flex; gap: var(--space-xs); margin-top: var(--space-xs); }
+.ask input { flex: 1; min-width: 0; font: 500 var(--text-md) var(--font-ui); border: 1px solid var(--color-rule); background: var(--color-white); border-radius: var(--radius); padding: var(--space-xs) var(--space-sm); color: var(--color-ink); }
+.ask input:focus-visible { outline: 3px solid var(--color-sky-2); border-color: var(--color-sky); outline-offset: 0; }
+.ask .btn { padding: var(--space-xs) var(--space-md); }
+.suggest { display: flex; gap: var(--space-2xs); flex-wrap: wrap; margin-top: var(--space-sm); }
+.chip { border: 1px solid var(--color-rule); background: var(--color-white); border-radius: var(--radius-pill); padding: var(--space-3xs) var(--space-sm); font-size: var(--text-sm); color: var(--color-ink-2); cursor: pointer; white-space: nowrap; }
+.chip:hover { border-color: var(--color-lime); background: var(--color-lime-2); }
+.answer { display: grid; grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr); gap: var(--space-lg); background: var(--color-white); border: 1px solid var(--color-rule); border-radius: var(--radius-lg); padding: var(--space-md); }
+.answer h3 { margin: 0 0 var(--space-2xs); font-size: var(--text-sm); color: var(--color-navy); font-weight: 800; }
+.answer p { margin: 0; font-size: var(--text-md); line-height: 1.65; color: var(--color-ink-2); }
+.sql { margin: 0; padding: var(--space-sm); background: var(--color-graphite); color: var(--color-on-dark); border-radius: var(--radius); font: 400 var(--text-sm)/1.6 var(--font-mono); white-space: pre-wrap; overflow-wrap: anywhere; }
+.sql b { color: var(--color-lime); font-weight: 500; } .sql s { text-decoration: none; color: var(--color-sky); }
+.tbl { margin-top: var(--space-lg); background: var(--color-white); border: 1px solid var(--color-rule); border-radius: var(--radius-lg); overflow: hidden; }
+.tbl-head { display: flex; justify-content: space-between; gap: var(--space-sm); padding: var(--space-sm); font-weight: 800; color: var(--color-graphite); flex-wrap: wrap; }
+.tbl-head span { font: 400 var(--text-xs) var(--font-mono); color: var(--color-muted); }
+.ledger { width: 100%; border-collapse: collapse; font-size: var(--text-sm); }
+.ledger th { text-align: left; background: var(--color-graphite); color: var(--color-white); font-weight: 700; padding: var(--space-xs) var(--space-sm); }
+.ledger td { padding: var(--space-xs) var(--space-sm); border-top: 1px solid var(--color-rule); vertical-align: top; color: var(--color-ink-2); }
+.ledger td.num { white-space: nowrap; }
+.ledger .fn { font: 400 var(--text-xs) var(--font-mono); color: var(--color-muted); overflow-wrap: anywhere; }
+.ledger .who { font-weight: 700; color: var(--color-graphite); }
+.ledger tr.hit td { background: var(--color-risk-2); }
+.badge { display: inline-block; font-size: var(--text-xs); font-weight: 800; border-radius: var(--radius-pill); padding: 2px 10px; white-space: nowrap; }
+.b-ok { background: var(--color-lime-2); color: var(--color-lime-ink); }
+.b-info { background: var(--color-sky-2); color: var(--color-navy); }
+.b-bad { background: var(--color-risk-2); color: var(--color-risk); }
+.dev { display: block; }
+.dev.red { color: var(--color-risk); font-weight: 600; }
+.dev.yellow { color: var(--color-warn); }
+.doc-actions { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; }
+.doc-actions a.btn-line { text-decoration: none; display: inline-flex; align-items: center; }
+.theme-tag { display: inline-block; font: 600 0.68rem var(--font-ui); color: var(--color-muted); margin-top: 2px; }
+.band-row { display: flex; justify-content: space-between; align-items: center; gap: var(--space-sm); flex-wrap: wrap; }
+.band-dl { color: var(--color-white); background: rgba(255,255,255,0.16); border: 1px solid rgba(255,255,255,0.35); border-radius: var(--radius-pill); padding: 3px 10px; font: 700 var(--text-xs) var(--font-ui); text-decoration: none; white-space: nowrap; }
+.band-dl:hover { background: rgba(255,255,255,0.28); }
+/* ---------- daily summary (presentation mock: LCAI Agent banner, stat tiles, action table) */
+.pulpit { padding-top: var(--space-xl); display: flex; flex-direction: column; gap: var(--space-md); }
+.copilot { position: relative; overflow: hidden; border-radius: var(--radius-lg); padding: var(--space-md) var(--space-lg) calc(var(--space-md) + 6px); background: var(--color-graphite); color: var(--color-white); }
+.copilot::after { content: ""; position: absolute; inset: auto 0 0 0; height: 6px; background: linear-gradient(90deg, var(--color-lime) 0 72%, var(--color-sky) 72% 86%, var(--color-navy) 86% 100%); }
+.copilot-head { display: flex; align-items: center; gap: var(--space-xs); flex-wrap: wrap; }
+.copilot-head h2 { margin: 0; font: 800 var(--text-md)/1.2 var(--font-ui); letter-spacing: -0.01em; }
+.copilot-mark { width: 1.9rem; height: 1.9rem; border-radius: 8px; display: grid; place-items: center; flex: none; background: var(--color-lime); color: var(--color-graphite); font: 800 0.7rem/1 var(--font-ui); letter-spacing: -0.03em; }
+.copilot-src { margin-left: auto; font-size: var(--text-xs); font-weight: 600; color: var(--color-on-dark); white-space: nowrap; }
+.copilot p { margin: var(--space-sm) 0 0; max-width: 78ch; font-size: var(--text-md); line-height: 1.7; color: var(--color-white); text-wrap: pretty; }
+.copilot .thinking { display: flex; gap: var(--space-2xs); align-items: center; color: var(--color-on-dark); }
+.copilot .thinking .dot { margin: 0; border-color: rgba(255,255,255,0.25); border-top-color: var(--color-lime); }
+.copilot p.reveal { animation: reveal 600ms var(--ease-out); }
+@keyframes reveal { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: none; } }
+.stats { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: var(--space-sm); }
+.stat { border-radius: var(--radius-lg); padding: var(--space-sm) var(--space-md); border-top: 4px solid; min-width: 0; }
+.stat .sk { font-size: var(--text-xs); font-weight: 800; }
+.stat .sv { display: block; margin-top: var(--space-3xs); font: 800 var(--text-xl)/1 var(--font-ui); letter-spacing: -0.03em; font-variant-numeric: tabular-nums; }
+.stat .ss { display: block; margin-top: var(--space-3xs); font-size: var(--text-xs); }
+.stat.all { background: var(--color-white); border-color: var(--color-graphite); color: var(--color-graphite); }
+.stat.b2b { background: var(--color-lime-2); border-color: var(--color-lime); color: var(--color-lime-ink); }
+.stat.dpa { background: var(--color-sky-2); border-color: var(--color-sky); color: var(--color-navy); }
+.stat .ss { color: var(--color-muted); }
+.stat.alert { background: var(--color-risk); border-color: var(--color-risk); color: var(--color-white); animation: pulse-red 1.8s ease-in-out infinite; }
+.stat.alert .ss { color: var(--color-risk-2); }
+@keyframes pulse-red {
+  0%   { box-shadow: 0 0 0 0 oklch(54.3% 0.174 30 / 0.55); background: var(--color-risk); }
+  50%  { background: oklch(60% 0.19 30); }
+  70%  { box-shadow: 0 0 0 12px oklch(54.3% 0.174 30 / 0); }
+  100% { box-shadow: 0 0 0 0 oklch(54.3% 0.174 30 / 0); background: var(--color-risk); }
+}
+.pulpit .tbl { margin-top: 0; }
+.ledger .why { color: var(--color-ink-2); }
+.b-warn { background: var(--color-warn-2); color: var(--color-warn); }
+.act.done { background: var(--color-lime-2); border-color: var(--color-lime); color: var(--color-lime-ink); opacity: 1; }
+/* 5 visual document themes in preview */
+#doc[data-theme="kancelaryjny"] .text { font-family: Georgia, "Times New Roman", serif; }
+#doc[data-theme="kancelaryjny"] .sec-title { text-align: center; border-bottom: 3px double var(--color-graphite); padding-bottom: 4px; }
+#doc[data-theme="korporacyjny"] .text { font-family: Calibri, "Plus Jakarta Sans", sans-serif; }
+#doc[data-theme="korporacyjny"] .band { background: linear-gradient(120deg, #1B365D 0 70%, #3B82F6 70% 100%); }
+#doc[data-theme="korporacyjny"] .sec-title { border-left: 4px solid #1B365D; padding-left: 10px; }
+#doc[data-theme="korporacyjny"] .cells:first-of-type { background: #EFF6FF; font-weight: 700; padding-inline: 8px; }
+#doc[data-theme="tech"] .text { font-family: Arial, Inter, sans-serif; }
+#doc[data-theme="tech"] .band { background: linear-gradient(120deg, #0F5132 0 68%, #10B981 68% 100%); }
+#doc[data-theme="tech"] .title { text-align: left; }
+#doc[data-theme="tech"] .sec-title { font-family: var(--font-ui); text-transform: uppercase; letter-spacing: 0.04em; border-left: 4px solid #0F5132; padding-left: 10px; color: #0F5132; }
+#doc[data-theme="ramkowy"] .text { font-family: Garamond, Georgia, serif; }
+#doc[data-theme="ramkowy"] .band { background: linear-gradient(120deg, #6B1D2F 0 72%, #BE185D 72% 100%); }
+#doc[data-theme="ramkowy"] .sec-title { background: #FDF2F8; border: 1px solid #FBCFE8; padding: 6px 10px; border-radius: 4px; color: #6B1D2F; }
+#doc[data-theme="ramkowy"] .party { border: 1px solid #6B1D2F; padding: 8px 10px; border-radius: 4px; background: #FFFBFD; }
+#doc[data-theme="enterprise"] .text { font-family: Verdana, system-ui, sans-serif; font-size: 0.92rem; }
+#doc[data-theme="enterprise"] .band { background: linear-gradient(120deg, #2B547E 0 65%, #0284C7 65% 100%); }
+#doc[data-theme="enterprise"] .sec-title { background: #F0F4F8; border-left: 4px solid #2B547E; padding: 6px 10px; }
+/* ---------- rules (read-only knowledge base) */
+.rules-head { display: grid; grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr); gap: var(--space-xl); padding: var(--space-xl) 0 var(--space-md); align-items: start; }
+.dot.navy { background: var(--color-navy); }
+.chip[aria-pressed="true"] { background: var(--color-graphite); border-color: var(--color-graphite); color: var(--color-white); font-weight: 700; }
+.rgroup { margin-top: var(--space-xl); }
+.rgroup h2 { display: flex; align-items: baseline; gap: var(--space-xs); flex-wrap: wrap; margin: 0 0 var(--space-sm); padding-bottom: var(--space-2xs); border-bottom: 2px solid var(--color-graphite); font: 800 var(--text-lg)/1.2 var(--font-ui); color: var(--color-graphite); letter-spacing: -0.02em; }
+.rgroup h2 span { font-size: var(--text-xs); font-weight: 700; color: var(--color-muted); letter-spacing: 0; }
+.rlist { display: flex; flex-direction: column; gap: var(--space-sm); }
+.rule { display: grid; grid-template-columns: minmax(0, 17rem) minmax(0, 1fr); gap: var(--space-xs) var(--space-md); background: var(--color-white); border: 1px solid var(--color-rule); border-radius: var(--radius-lg); padding: var(--space-md); }
+.rule-id { font: 500 var(--text-xs) var(--font-mono); color: var(--color-navy); }
+.rule h3 { margin: var(--space-3xs) 0 0; font: 800 var(--text-md)/1.3 var(--font-ui); color: var(--color-graphite); overflow-wrap: anywhere; }
+.rule-meta p { margin: var(--space-2xs) 0 0; color: var(--color-ink-2); }
+.rule-tags { display: flex; flex-wrap: wrap; gap: var(--space-3xs); margin-top: var(--space-xs); }
+.k-kryt { background: var(--color-risk); color: var(--color-white); }
+.k-wys { background: var(--color-risk-2); color: var(--color-risk); }
+.k-sr { background: var(--color-warn-2); color: var(--color-warn); }
+.k-nis { background: var(--color-sky-2); color: var(--color-navy); }
+.badge.how { background: var(--color-fill); color: var(--color-ink-2); font-weight: 700; }
+.levels { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--space-2xs); }
+.lvl { border-radius: var(--radius); border-top: 4px solid; padding: var(--space-xs) var(--space-sm); min-width: 0; }
+.lvl.g { background: var(--color-lime-2); border-color: var(--color-lime); }
+.lvl.y { background: var(--color-warn-2); border-color: var(--color-warn); }
+.lvl.r { background: var(--color-risk-2); border-color: var(--color-risk); }
+.lvl.na { background: var(--color-fill); border-color: var(--color-rule); }
+.lvl .lk { display: flex; justify-content: space-between; gap: var(--space-2xs); font-size: var(--text-xs); font-weight: 800; }
+.lvl.g .lk { color: var(--color-lime-ink); } .lvl.y .lk { color: var(--color-warn); } .lvl.r .lk { color: var(--color-risk); } .lvl.na .lk { color: var(--color-muted); }
+.lvl .lk b { font: 500 var(--text-xs) var(--font-mono); white-space: nowrap; }
+.lvl p { margin: var(--space-3xs) 0 0; color: var(--color-ink); overflow-wrap: anywhere; }
+.lvl.na p { color: var(--color-muted); font-style: italic; }
+.rule-rec { grid-column: 2; margin: 0; padding-left: var(--space-xs); border-left: 3px solid var(--color-sky); color: var(--color-ink-2); }
+.rule-rec b { color: var(--color-graphite); }
+/* session-only editing (mockup: nothing leaves the browser tab) */
+.session-note { display: flex; justify-content: space-between; align-items: center; gap: var(--space-xs); flex-wrap: wrap; margin-bottom: var(--space-sm); padding: var(--space-2xs) var(--space-sm); border-radius: var(--radius); background: var(--color-sky-2); color: var(--color-navy); }
+.linkbtn { background: none; border: 0; padding: 0; color: var(--color-navy); font-weight: 800; text-decoration: underline; text-underline-offset: 2px; cursor: pointer; white-space: nowrap; }
+.btn-sm { padding: var(--space-3xs) var(--space-xs); font-size: var(--text-xs); }
+.rule-actions { display: flex; align-items: center; gap: var(--space-xs); flex-wrap: wrap; margin-top: var(--space-sm); }
+.badge.edited { background: var(--color-sky-2); color: var(--color-navy); }
+.rule.editing { border-color: var(--color-sky); box-shadow: 0 0 0 3px var(--color-sky-2); }
+.fld { display: block; margin-top: var(--space-2xs); }
+.fld > span { display: block; margin-bottom: 2px; font-size: var(--text-xs); font-weight: 800; color: var(--color-muted); }
+.fld input, .fld select, .fld textarea, .lvl textarea { display: block; width: 100%; font: inherit; color: var(--color-ink); background: var(--color-white); border: 1px solid var(--color-rule); border-radius: 8px; padding: var(--space-3xs) var(--space-2xs); }
+.fld input { font-weight: 800; color: var(--color-graphite); }
+.fld textarea, .lvl textarea { resize: vertical; }
+.lvl textarea { margin-top: var(--space-3xs); min-height: 6rem; }
+.fld input:focus-visible, .fld select:focus-visible, .fld textarea:focus-visible, .lvl textarea:focus-visible { outline: 3px solid var(--color-sky-2); border-color: var(--color-sky); outline-offset: 0; }
+.rule-rec.fld { border-left: 0; padding-left: 0; margin-top: 0; }
+
+/* ---------- login (presentation only: any login and password pass, nothing is sent or stored except the login name) */
+body.locked > :not(.login):not(script) { display: none !important; }
+body:not(.locked) > .login { display: none; }
+.login { min-height: 100vh; min-height: 100dvh; display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr); }
+.login-brand { position: relative; display: flex; flex-direction: column; justify-content: space-between; gap: var(--space-xl); padding: clamp(1.5rem, 5vw, 4.5rem); background: var(--color-graphite); color: var(--color-white); }
+.login-brand::after { content: ""; position: absolute; inset: auto 0 0 0; height: 6px; background: linear-gradient(90deg, var(--color-lime) 0 72%, var(--color-sky) 72% 86%, var(--color-navy) 86% 100%); }
+.login-pitch { display: flex; flex-direction: column; gap: var(--space-md); }
+.login-pitch h1 { margin: 0; max-width: 16ch; font: 800 clamp(1.9rem, 2.4vw + 1rem, 3rem)/1.08 var(--font-ui); letter-spacing: -0.035em; }
+.login-pitch h1 em { font-style: normal; color: var(--color-lime); }
+.login-pitch p { margin: 0; max-width: 46ch; font-size: var(--text-md); line-height: 1.6; color: var(--color-on-dark); }
+.login-points { list-style: none; margin: 0; padding: 0; display: grid; gap: var(--space-xs); }
+.login-points li { display: grid; grid-template-columns: 0.6rem minmax(0, 1fr); gap: var(--space-xs); align-items: baseline; color: var(--color-on-dark); }
+.login-points li::before { content: ""; width: 0.6rem; height: 0.6rem; border-radius: 3px; background: var(--color-lime); }
+.login-points b { color: var(--color-white); }
+.login-foot { font-size: var(--text-xs); color: var(--color-on-dark); }
+.login-side { display: grid; grid-template-columns: minmax(0, 1fr); place-items: center; padding: var(--space-xl) var(--space-md); background: var(--color-fill); }
+.login-card { width: 100%; max-width: 400px; background: var(--color-white); border: 1px solid var(--color-rule); border-radius: var(--radius-lg); padding: var(--space-lg); }
+.login-card h2 { margin: 0; font: 800 var(--text-xl)/1.2 var(--font-ui); color: var(--color-graphite); letter-spacing: -0.02em; }
+.login-card .login-sub { margin: var(--space-2xs) 0 var(--space-sm); color: var(--color-muted); text-wrap: pretty; }
+.login-card .fld { margin-top: var(--space-sm); }
+.login-card .fld input { padding: var(--space-xs) var(--space-sm); border-radius: var(--radius); font-size: var(--text-md); font-weight: 500; color: var(--color-ink); }
+.login-card .btn { width: 100%; margin-top: var(--space-md); }
+.login-card .hint { margin: var(--space-sm) 0 0; text-align: center; font-size: var(--text-xs); color: var(--color-muted); }
+.user { display: flex; align-items: center; gap: var(--space-2xs); flex: none; }
+.user .avatar { width: 42px; height: 42px; border-radius: 12px; display: grid; place-items: center; flex: none; background: var(--color-sky); color: var(--color-white); font: 800 16px/1 var(--font-ui); letter-spacing: -0.04em; }
+.user .uname { white-space: nowrap; color: var(--color-white); font-weight: 800; }
+.user .linkbtn { color: var(--color-on-dark); font-weight: 600; }
+.user .linkbtn:hover { color: var(--color-white); }
+
+.foot { max-width: 1240px; margin: 0 auto; padding: var(--space-md); border-top: 1px solid var(--color-rule); color: var(--color-muted); font-size: var(--text-xs); display: flex; gap: var(--space-sm); flex-wrap: wrap; }
+.foot a { color: var(--color-navy); font-weight: 700; }
+
+@media (max-width: 1000px) {
+  .verdict { grid-template-columns: auto minmax(0, 1fr); }
+  .verdict > .panel { grid-column: 1 / -1; }
+  .row { grid-template-columns: minmax(0, 1fr); }
+  .margin { padding: 0 var(--sheet-pad) var(--space-xs) calc(var(--sheet-pad) + 1.6rem); background: var(--color-white); border-inline: 1px solid var(--color-rule); }
+  .margin:empty, .row.first .margin-head { display: none; }
+  .answer { grid-template-columns: minmax(0, 1fr); }
+  .loader-in { grid-template-columns: minmax(0, 1fr); }
+  .rules-head, .rule { grid-template-columns: minmax(0, 1fr); }
+  .rule-rec { grid-column: 1; }
+  .login { grid-template-columns: minmax(0, 1fr); }
+  .login-brand { gap: var(--space-lg); padding-bottom: var(--space-xl); }
+  .login-foot { display: none; }
+}
+@media (max-width: 600px) {
+  .top-in { gap: var(--space-xs); padding: var(--space-xs) var(--space-sm); }
+  .tabs { flex-wrap: wrap; }
+  .tab { padding: var(--space-2xs) var(--space-xs); }
+  .file { margin-left: 0; width: 100%; justify-content: space-between; }
+  main { padding: 0 var(--space-sm) var(--space-xl); }
+  .verdict { grid-template-columns: minmax(0, 1fr); gap: var(--space-md); }
+  .band { background: linear-gradient(120deg, var(--color-graphite) 0 78%, var(--color-lime) 78% 89%, var(--color-navy) 89% 100%); }
+  .ask-row { flex-direction: column; }
+  .stats { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--space-xs); }
+  .copilot { padding-inline: var(--space-sm); }
+  .copilot-src { margin-left: 0; width: 100%; }
+  .ledger thead { display: none; }
+  .ledger tr { display: block; border-top: 1px solid var(--color-rule); padding: var(--space-2xs) var(--space-sm); }
+  .ledger td { display: block; border: 0; padding: var(--space-3xs) 0; }
+  .levels { grid-template-columns: minmax(0, 1fr); }
+  .rule { padding: var(--space-sm); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .flash { animation: none; outline: 3px solid var(--color-sky); }
+  .dot.run { animation: none; border-color: var(--color-navy); }
+  .note, .term .tv { transition: none; }
+  .stat.alert { animation: none; box-shadow: 0 0 0 3px var(--color-risk-2); }
+  .copilot p.reveal { animation: none; }
+}
+</style>
+</head>
+<body class="locked">
+<script>try { if (sessionStorage.getItem("lcai.login")) document.body.classList.remove("locked"); } catch {}</script>
+
+<!-- =========================================== LOGOWANIE (prezentacja: dowolny login i hasło) -->
+<div class="login" id="login">
+  <div class="login-brand">
+    <div class="brand">
+      <div class="logo" aria-hidden="true"><b>LC</b><i>AI</i></div>
+      <div><div class="wm">LCAI</div><div class="tagline">Legal &amp; Compliance AI</div></div>
+    </div>
+    <div class="login-pitch">
+      <h1>Weryfikacja umów <em>w&nbsp;minutę</em>, nie w&nbsp;tydzień</h1>
+      <p>Agent LCAI czyta umowę, porównuje ją z zasadami Grupy Pelion i sprawdza kontrahenta w wykazie VAT MF oraz na liście sankcyjnej MSWiA.</p>
+      <ul class="login-points">
+        <li><span><b>Analiza umowy</b> · uwagi przy akapitach i score ryzyka 0–100</span></li>
+        <li><span><b>Rejestr umów</b> · pytania w języku naturalnym do BigQuery</span></li>
+        <li><span><b>Zasady Grupy Pelion</b> · progi zielony, żółty, czerwony</span></li>
+      </ul>
+    </div>
+    <div class="login-foot">Google ADK · Gemini na Vertex AI · BigQuery</div>
+  </div>
+  <div class="login-side">
+    <form class="login-card" id="loginForm">
+      <h2>Zaloguj się</h2>
+      <p class="login-sub">Wpisz login i hasło, aby rozpocząć weryfikację umów.</p>
+      <label class="fld"><span>Login</span><input name="login" autocomplete="username" placeholder="np. jan.kowalski" autofocus></label>
+      <label class="fld"><span>Hasło</span><input name="haslo" type="password" autocomplete="current-password"></label>
+      <button class="btn big" type="submit">Zaloguj</button>
+      <p class="hint">Użyj swojej skrzynki pracowniczej ePRUF do logowania.</p>
+    </form>
+  </div>
+</div>
+
+<header class="top">
+  <div class="top-in">
+    <div class="brand">
+      <div class="logo" aria-hidden="true"><b>LC</b><i>AI</i></div>
+      <div><div class="wm">LCAI</div><div class="tagline">Legal &amp; Compliance AI</div></div>
+    </div>
+    <nav class="tabs" role="tablist">
+      <button class="tab" role="tab" aria-selected="true" data-view="pulpit">Pulpit</button>
+      <button class="tab" role="tab" aria-selected="false" data-view="analiza">Analiza umowy</button>
+      <button class="tab" role="tab" aria-selected="false" data-view="rejestr">Rejestr umów</button>
+      <button class="tab" role="tab" aria-selected="false" data-view="zasady">Zasady</button>
+    </nav>
+    <div class="file"><b id="fileName">—</b><button class="btn" id="openLoader" aria-expanded="false" aria-controls="loader">Wczytaj umowę</button></div>
+    <div class="user" id="user"><span class="avatar" id="userInitials" aria-hidden="true"></span><span class="uname" id="userName"></span>
+      <button type="button" class="linkbtn" id="logout">Wyloguj</button></div>
+  </div>
+  <div class="brandbar"></div>
+</header>
+
+<div class="loader" id="loader" hidden>
+  <div class="loader-in">
+    <div>
+      <h2>Przykładowe umowy</h2>
+      <div class="samples" id="samples"></div>
+    </div>
+    <div class="upload">
+      <h2>Własny plik</h2>
+      <input type="file" id="file" accept=".txt,.md,.docx">
+      <label for="file" class="btn-line">Wybierz plik z dysku</label>
+      <span class="hint">TXT lub DOCX, do 15 MB</span>
+    </div>
+  </div>
+</div>
+
+<main>
+<!-- =========================================== PULPIT (makieta na prezentację: dane w PULPIT_MOCK) -->
+<section id="pulpit">
+  <div class="pulpit">
+    <div class="copilot" aria-live="polite">
+      <div class="copilot-head"><span class="copilot-mark" aria-hidden="true">AI</span>
+        <h2>Inteligentne podsumowanie dnia (LCAI Agent)</h2><span class="copilot-src">Gemini na Vertex AI · rejestr umów</span></div>
+      <div id="copilotText"></div>
+    </div>
+    <div class="stats" id="stats"></div>
+    <div class="tbl">
+      <div class="tbl-head">Pilne działania <span id="actionsCount"></span></div>
+      <div id="actions"></div>
+    </div>
+  </div>
+</section>
+
+<!-- =========================================== ANALIZA -->
+<section id="analiza" hidden>
+  <div class="verdict" id="verdict"></div>
+  <div class="terms" id="terms" hidden></div>
+  <article class="doc" id="doc"></article>
+</section>
+
+<!-- =========================================== REJESTR -->
+<section id="rejestr" hidden>
+  <form class="ask" id="askForm">
+    <label for="q">Zapytaj rejestr umów</label>
+    <div class="ask-row">
+      <input id="q" autocomplete="off" placeholder="np. Znajdź umowy powierzenia bez zapisu o termination_data_policy">
+      <button class="btn" id="askBtn" type="submit">Szukaj w rejestrze</button>
+    </div>
+    <div class="suggest" id="chips"></div>
+  </form>
+  <div id="answer"></div>
+  <div class="tbl">
+    <div class="tbl-head">Rejestr umów <span id="backend"></span></div>
+    <div id="registry"><p style="padding: 0 var(--space-sm)">Ładowanie…</p></div>
+  </div>
+</section>
+
+<!-- =========================================== ZASADY -->
+<section id="zasady" hidden>
+  <div class="rules-head">
+    <div class="lede">
+      <h1>Zasady Grupy Pelion</h1>
+      <p>Baza wiedzy, z którą agent LCAI porównuje każdą umowę. Każda zasada opisuje wymaganie i trzy progi oceny: zielony (zgodne), żółty (do poprawy przed podpisem) i czerwony (blokuje podpis).</p>
+    </div>
+    <div class="panel" id="rulesHow"></div>
+  </div>
+  <div class="session-note" id="rulesSession"></div>
+  <div class="suggest" id="ruleFilter" role="group" aria-label="Typ umowy"></div>
+  <div id="rules"><p>Ładowanie…</p></div>
+</section>
+</main>
+
+<footer class="foot">
+  <span>Agenci: <b>analiza_umowy</b>, <b>rejestr_umow</b> · Google ADK · Gemini na Vertex AI</span>
+  <span>Źródła: wykaz podatników VAT MF · lista sankcyjna MSWiA · zasady Grupy Pelion</span>
+  <a href="/dev-ui/" target="_blank" rel="noopener">ADK Dev UI ↗</a>
+</footer>
+
+<script>
+const USER = "demo";
+const $ = (id) => document.getElementById(id);
+const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
+const behavior = reduce ? "auto" : "smooth";
+const plural = (n, one, few, many) => n === 1 ? one : (n % 10 >= 2 && n % 10 <= 4 && !(n % 100 >= 12 && n % 100 <= 14)) ? few : many;
+let ZASADY = {};
+
+// ---------------------------------------------------------------- tabs + loader
+function pokazWidok(view) {
+  document.querySelectorAll(".tab").forEach((x) => x.setAttribute("aria-selected", String(x.dataset.view === view)));
+  for (const v of ["pulpit", "analiza", "rejestr", "zasady"]) $(v).hidden = v !== view;
+  if (view === "pulpit") renderPulpit();
+  if (view === "rejestr") loadRegistry();
+  if (view === "zasady") renderRules();
+}
+document.querySelectorAll(".tab").forEach((t) => t.addEventListener("click", () => pokazWidok(t.dataset.view)));
+function toggleLoader(open) {
+  $("loader").hidden = !open;
+  $("openLoader").setAttribute("aria-expanded", String(open));
+}
+$("openLoader").addEventListener("click", () => toggleLoader($("loader").hidden));
+
+// ---------------------------------------------------------------- ADK client
+async function api(path, opts = {}) {
+  const r = await fetch(path, { headers: { "Content-Type": "application/json" }, ...opts });
+  if (!r.ok) {
+    let msg = r.statusText;
+    try { const j = await r.json(); msg = j.detail || JSON.stringify(j); } catch {}
+    throw new Error(`${r.status}: ${msg}`);
+  }
+  return r.json();
+}
+
+async function runAgent(app, text, state, onEvent) {
+  const session = await api(`/apps/${app}/users/${USER}/sessions`, { method: "POST", body: JSON.stringify({ state }) });
+  const resp = await fetch("/run_sse", {
+    method: "POST",
+    headers: { "Content-Type": "application/json", Accept: "text/event-stream" },
+    body: JSON.stringify({ app_name: app, user_id: USER, session_id: session.id, streaming: false,
+                           new_message: { role: "user", parts: [{ text }] } }),
+  });
+  if (!resp.ok) throw new Error(`run_sse ${resp.status}: ${await resp.text()}`);
+  const reader = resp.body.getReader(), decoder = new TextDecoder();
+  let buf = "";
+  for (;;) {
+    const { value, done } = await reader.read();
+    if (done) break;
+    buf += decoder.decode(value, { stream: true });
+    let i;
+    while ((i = buf.indexOf("\n\n")) >= 0) {
+      const chunk = buf.slice(0, i); buf = buf.slice(i + 2);
+      for (const line of chunk.split("\n")) {
+        if (!line.startsWith("data:")) continue;
+        const ev = JSON.parse(line.slice(5));
+        if (ev.error) throw new Error(ev.error);
+        onEvent(ev);
+      }
+    }
+  }
+  return (await api(`/apps/${app}/users/${USER}/sessions/${session.id}`)).state || {};
+}
+
+// Live list of agent steps, fed from the SSE stream.
+const STEP_LABEL = {
+  pobierz_zasady: (a) => ["Zasady Grupy Pelion", `typ umowy: ${a.typ_umowy || "?"}`],
+  sprawdz_vat: (a) => ["Wykaz podatników VAT MF", `NIP ${a.nip || "—"} · rachunki: ${(a.rachunki || []).length}`],
+  sprawdz_sankcje: (a) => ["Lista sankcyjna MSWiA", `${(a.nazwy || []).length} nazw i cały tekst umowy`],
+  schemat_rejestru: () => ["Schemat rejestru", "kolumny i zasady"],
+  wykonaj_sql: (a) => ["Zapytanie SQL", a.zapytanie || ""],
+  execute_sql: (a) => ["BigQuery SQL", a.query || ""],
+  get_table_info: () => ["BigQuery", "schemat tabeli"],
+  znajdz_odstepstwa: (a) => ["Ocena umów względem zasad", [a.typ, a.status].filter(Boolean).join(" · ") || "wszystkie umowy"],
+};
+const STEP_RESULT = {
+  pobierz_zasady: (r) => [`${(r.zasady || []).length} zasad`, false],
+  sprawdz_vat: (r) => {
+    if (r.blad) return [r.blad, true];
+    const acc = r.rachunki || [];
+    const badAcc = acc.some((x) => !x.na_liscie);
+    const rach = badAcc ? "rachunek spoza wykazu" : acc.length ? "rachunki w wykazie" : "brak rachunku w umowie";
+    // znaleziony: false -> NIP not in the register, so there is no name / VAT status
+    return [`${r.nazwa || `NIP ${r.nip}`} · ${r.status_vat || "brak w wykazie"} · ${rach}`,
+      r.status_vat !== "Czynny" || badAcc];
+  },
+  sprawdz_sankcje: (r) => (r.trafienia || []).length
+    ? [`trafienie: ${r.trafienia.map((h) => h.nazwa_na_liscie).join(", ")}`, true] : ["brak trafień", false],
+  wykonaj_sql: (r) => r.blad ? [`błąd SQL: ${r.blad}`, true] : [`${r.liczba} wierszy`, false],
+  execute_sql: (r) => r.status === "ERROR" ? [`błąd: ${r.error_details}`, true] : [`${(r.rows || []).length} wierszy`, false],
+  znajdz_odstepstwa: (r) => [`${r.liczba} umów z odstępstwami`, false],
+  schemat_rejestru: (r) => [`backend: ${r.backend}`, false],
+};
+function steps(ul, thinking = ["Gemini porównuje zapisy z zasadami", "pisze raport z cytatami"]) {
+  ul.innerHTML = "";
+  const items = {};
+  const pending = new Set();
+  let round = 0;
+  const add = (key, k, v) => {
+    const li = document.createElement("li");
+    li.innerHTML = `<span class="dot run"></span><span><span class="k">${esc(k)}</span><br><span class="v">${esc(v)}</span></span>`;
+    ul.appendChild(li); items[key] = li;
+  };
+  const finish = (key, text, bad) => {
+    const li = items[key]; if (!li) return;
+    li.querySelector(".dot").className = "dot" + (bad ? " bad" : "");
+    if (text != null) { const v = li.querySelector(".v"); v.textContent = text; v.classList.toggle("bad", !!bad); }
+  };
+  return {
+    start(k, v) { add("model", k, v); },
+    event(ev) {
+      for (const part of ev.content?.parts || []) {
+        if (part.functionCall) {
+          const fc = part.functionCall;
+          finish("model"); finish(`think-${round}`);
+          if (fc.name === "set_model_response") continue;
+          const [k, v] = (STEP_LABEL[fc.name] || (() => [fc.name, ""]))(fc.args || {});
+          add(fc.id || fc.name, k, v);
+          pending.add(fc.id || fc.name);
+        }
+        if (part.functionResponse) {
+          const fr = part.functionResponse;
+          const res = fr.response?.result ?? fr.response ?? {};
+          const [text, bad] = (STEP_RESULT[fr.name] || (() => [null, false]))(res);
+          finish(fr.id || fr.name, text, bad);
+          pending.delete(fr.id || fr.name);
+          if (!pending.size && fr.name !== "set_model_response") { round += 1; add(`think-${round}`, ...thinking); }
+        }
+      }
+    },
+    done(k, v) { Object.keys(items).forEach((key) => items[key].querySelector(".dot.run") && finish(key)); add("done", k, v); finish("done"); },
+    fail(msg) { Object.keys(items).forEach((key) => items[key].querySelector(".dot.run") && finish(key, null, true)); add("err", "Błąd", msg); finish("err", msg, true); },
+  };
+}
+
+// ---------------------------------------------------------------- document model
+let doc = null;        // {nazwa, akapity, bloki, tekst}
+let result = null;     // wynik analizy
+
+function segments(b) {
+  if (b.typ === "wiersz") return b.komorki;
+  if (b.typ === "sekcja") return [b.tytul || ""];
+  if (["klauzula", "pod", "strona"].includes(b.typ)) return [b.tresc ?? b.tekst];
+  return [b.tekst];
+}
+
+function findLoose(text, quote) {
+  const norm = [], map = [];
+  for (let i = 0; i < text.length; i++) {
+    const c = /\s/.test(text[i]) ? " " : text[i].toLowerCase();
+    if (c === " " && norm[norm.length - 1] === " ") continue;
+    norm.push(c); map.push(i);
+  }
+  const q = quote.replace(/\s+/g, " ").trim().toLowerCase();
+  if (!q) return null;
+  const at = norm.join("").indexOf(q);
+  return at < 0 ? null : { start: map[at], end: map[at + q.length - 1] + 1 };
+}
+
+// Where a finding sits in the rendered document: {p, seg, start, end} for a quote, {p} for a whole block, or null.
+function locate(r) {
+  const quote = (r.cytat || "").replace(/^\[P\d+\]\s*/, "").trim();
+  // the preview drops list markers ("1.", "b)", "§ 3") that the agent may quote
+  const bare = quote.replace(/^(§\s*\d+[a-z]?\.?|\d{1,2}[.)]|[a-z]\))\s+/, "");
+  const byP = doc.bloki.find((b) => b.p === r.akapit);
+  const order = byP ? [byP, ...doc.bloki.filter((b) => b !== byP)] : doc.bloki;
+  if (quote) {
+    for (const q of [quote, bare, bare.slice(0, 40)]) {
+      for (const b of order) {
+        const segs = segments(b);
+        for (let s = 0; s < segs.length; s++) {
+          const hit = findLoose(segs[s], q);
+          if (hit) return { p: b.p, seg: s, ...hit };
+        }
+      }
+    }
+  }
+  return byP ? { p: byP.p } : null;
+}
+
+function rowsFrom(bloki) {
+  const head = [], pre = [], rows = [];
+  let seenSection = false;
+  for (const b of bloki) {
+    if (b.typ === "sekcja") { seenSection = true; rows.push([b]); continue; }
+    if (!seenSection) {
+      if (["tytul", "meta"].includes(b.typ)) head.push(b); else pre.push(b);
+    } else rows[rows.length - 1].push(b);
+  }
+  if (!seenSection && pre.length > 1) {  // no § structure: one row per paragraph so notes sit beside their text
+    const first = pre.filter((b) => ["strona", "lacznik", "wiersz"].includes(b.typ));
+    const rest = pre.filter((b) => !first.includes(b));
+    return { head, pre: first, rows: rest.map((b) => [b]) };
+  }
+  return { head, pre, rows };
+}
+
+// ---------------------------------------------------------------- rendering the contract
+function marked(text, marks) {
+  let out = "", pos = 0;
+  for (const m of [...marks].sort((a, b) => a.start - b.start)) {
+    if (m.start < pos) continue;
+    out += esc(text.slice(pos, m.start)) +
+      `<mark class="${m.risk.poziom === "ZOLTY" ? "y" : ""}" id="mark-${m.risk.id}" data-risk="${m.risk.id}" title="${esc(m.risk.kategoria)}">${esc(text.slice(m.start, m.end))}</mark>`;
+    pos = m.end;
+  }
+  return out + esc(text.slice(pos));
+}
+
+function blockHtml(b, marksFor, flags) {
+  const seg = (i, text) => marked(text, (marksFor[b.p] || []).filter((m) => m.seg === i));
+  const fl = flags[b.p] ? ` flag-${flags[b.p]}` : "";
+  const attrs = `class="blk${fl}" id="p-${b.p}" data-p="${b.p}"`;
+  switch (b.typ) {
+    case "sekcja": return `<h3 ${attrs.replace('class="blk', 'class="blk sec-title')}><span class="no">${esc(b.nr)}</span>${seg(0, b.tytul || "")}</h3>`;
+    case "klauzula": return `<p ${attrs.replace('class="blk', 'class="blk clause')}><span class="n">${esc(b.nr)}</span><span>${seg(0, b.tresc)}</span></p>`;
+    case "pod": return `<p ${attrs.replace('class="blk', 'class="blk sub')}><span class="n">${esc(b.nr)}</span><span>${seg(0, b.tresc)}</span></p>`;
+    case "wiersz": return `<div ${attrs.replace('class="blk', 'class="blk cells')}>${b.komorki.map((c, i) => `<span>${seg(i, c)}</span>`).join("")}</div>`;
+    case "podpis": return `<div ${attrs.replace('class="blk', 'class="blk sign')}>${seg(0, b.tekst.replace(/_{3,}/g, " "))}</div>`;
+    case "lacznik": return `<p ${attrs.replace('class="blk', 'class="blk pre join')}>${seg(0, b.tekst)}</p>`;
+    case "wstep": case "meta": return `<p ${attrs.replace('class="blk', 'class="blk pre')}>${seg(0, b.tekst)}</p>`;
+    default: return `<p ${attrs.replace('class="blk', 'class="blk plain')}>${seg(0, b.tekst)}</p>`;
+  }
+}
+
+function partyHtml(b, marksFor, flags) {
+  const fl = flags[b.p] ? ` flag-${flags[b.p]}` : "";
+  const text = marked(b.tresc, (marksFor[b.p] || []).filter((m) => m.seg === 0));
+  return `<div class="party blk${fl}" id="p-${b.p}" data-p="${b.p}"><div class="role">${esc(b.rola)}</div>${text}</div>`;
+}
+
+function srcLine(r) {
+  const d = r.dowod;
+  if (d && r.zasada_id === "ALL-SANKCJE") return `${d.zrodlo} · ${d.dane_identyfikacyjne || ""} · dopasowanie: ${d.dopasowanie}`;
+  if (d && r.zasada_id === "ALL-VAT") return `Wykaz podatników VAT MF · zapytanie ${d.id_zapytania || "—"} · ${d.data_sprawdzenia || ""}`;
+  const z = ZASADY[r.zasada_id];
+  return z ? `${r.zasada_id} · ${z.wymaganie}` : r.zasada_id;
+}
+
+function noteHtml(r) {
+  const y = r.poziom === "ZOLTY" ? " y" : "";
+  return `<button class="note${y}" id="note-${r.id}" data-risk="${r.id}">
+    <span class="nh">${esc(r.kategoria)}${r.krytycznosc === "KRYTYCZNA" ? ` <span class="crit">krytyczne</span>` : ""} <span class="rid">${r.id}</span></span>
+    <p>${esc(r.opis)}</p>
+    ${r.cytat ? "" : `<p><i>Brak wymaganego zapisu w umowie.</i></p>`}
+    <p class="rec">${esc(r.rekomendacja)}</p>
+    <span class="src">${esc(srcLine(r))}</span></button>`;
+}
+
+function okHtml(z) {
+  return `<div class="ok-note">${esc(z.zasada_id)} <span>· ${esc(z.uwaga)}</span></div>`
+    + (z.rekomendacja ? `<p class="ok-todo">${esc(z.rekomendacja)}</p>` : "");
+}
+
+function renderDoc() {
+  const w = result;
+  const marksFor = {}, flags = {}, notesAt = {}, okAt = {}, loose = [];
+  for (const r of w?.ryzyka || []) {
+    const loc = locate(r);
+    r._loc = loc;
+    if (!loc) { loose.push(r); continue; }
+    (notesAt[loc.p] ||= []).push(r);
+    if (loc.start != null) (marksFor[loc.p] ||= []).push({ ...loc, risk: r });
+    else flags[loc.p] = flags[loc.p] === "red" ? "red" : (r.poziom === "ZOLTY" ? "yellow" : "red");
+  }
+  for (const z of w?.zgodnosc || []) if (z.akapit) (okAt[z.akapit] ||= []).push(z);
+  // counterparty found in the VAT register: note beside the paragraph that carries its NIP
+  const v = w?.vat;
+  if (v?.znaleziony && v.status_vat === "Czynny") {
+    const b = doc.bloki.find((x) => x.tekst.replace(/\D/g, "").includes(v.nip));
+    if (b) (okAt[b.p] ||= []).unshift({ zasada_id: "Kontrahent w wykazie VAT", uwaga: `status ${v.status_vat}` });
+  }
+
+  const { head, pre, rows } = rowsFrom(doc.bloki);
+  const title = head.find((b) => b.typ === "tytul");
+  const metas = head.filter((b) => b !== title);
+  const margin = (blocks) => {
+    const ps = blocks.map((b) => b.p);
+    return ps.flatMap((p) => okAt[p] || []).map(okHtml).join("") + ps.flatMap((p) => notesAt[p] || []).map(noteHtml).join("");
+  };
+  const body = (blocks) => {
+    const parties = blocks.filter((b) => b.typ === "strona");
+    const others = blocks.filter((b) => b.typ !== "strona" && b.typ !== "lacznik");
+    return (parties.length ? `<div class="parties">${parties.map((b) => partyHtml(b, marksFor, flags)).join("")}</div>` : "")
+      + others.map((b) => blockHtml(b, marksFor, flags)).join("");
+  };
+
+  const counterparty = (w?.strony || []).find((s) => s.nip && s.nip !== "9471958279" && !/podwykonaw/i.test(s.rola));
+  const theme = doc.motyw || { id: "kancelaryjny", nazwa: "Klasyczny kancelaryjny" };
+  $("doc").dataset.theme = theme.id;
+  const dlUrl = `/api/umowy/${encodeURIComponent(doc.nazwa)}/docx`;
+  let html = `<div class="row first"><div class="text">
+      <div class="band"><div class="band-row"><div><strong>${esc(counterparty?.nazwa || "Podgląd umowy")}</strong><br><span>${esc(doc.nazwa)} · szablon: ${esc(theme.nazwa)}</span></div>
+      <a class="band-dl" href="${dlUrl}" download>Pobierz .docx</a></div></div>
+      <div class="title">${title ? `<h2 id="p-${title.p}" class="blk" data-p="${title.p}">${marked(title.tekst, (marksFor[title.p] || []))}</h2>` : ""}
+      ${metas.map((b) => `<div class="meta blk" id="p-${b.p}" data-p="${b.p}">${marked(b.tekst, marksFor[b.p] || [])}</div>`).join("")}</div>
+    </div><div class="margin-head">${w ? "Uwagi agenta LCAI" : "Uwagi pojawią się po analizie"}</div></div>`;
+  const looseNotes = loose.map(noteHtml).join("");
+  if (pre.length || looseNotes) html += `<div class="row"><div class="text">${body(pre)}</div><div class="margin">${margin(pre)}${looseNotes}</div></div>`;
+  rows.forEach((blocks, i) => {
+    html += `<div class="row${i === rows.length - 1 ? " last" : ""}"><div class="text">${body(blocks)}</div><div class="margin">${margin(blocks)}</div></div>`;
+  });
+  if (!rows.length) html += `<div class="row last"><div class="text"></div><div class="margin"></div></div>`;
+  $("doc").innerHTML = html;
+  $("doc").querySelectorAll(".note").forEach((n) => n.addEventListener("click", () => focusRisk(n.dataset.risk, "note")));
+  $("doc").querySelectorAll("mark[data-risk]").forEach((m) => m.addEventListener("click", () => focusRisk(m.dataset.risk, "mark")));
+}
+
+function flash(el) { el.classList.remove("flash"); void el.offsetWidth; el.classList.add("flash"); }
+function focusRisk(id, from) {
+  document.querySelectorAll("mark, .note").forEach((e) => e.classList.toggle("on", e.dataset.risk === id));
+  const r = (result?.ryzyka || []).find((x) => x.id === id);
+  const inText = $("mark-" + id) || (r?._loc ? $("p-" + r._loc.p) : null);
+  const target = from === "note" ? inText : $("note-" + id);
+  if (!target) return;
+  target.scrollIntoView({ block: "center", behavior });
+  flash(target);
+}
+function focusParagraph(p) {
+  const el = $("p-" + p); if (!el) return;
+  el.scrollIntoView({ block: "center", behavior });
+  flash(el);
+}
+
+// ---------------------------------------------------------------- verdict area
+function scoreBlock(value, level) {
+  const cls = level === "NISKIE" ? "lvl-low" : level === "UMIARKOWANE" ? "lvl-mid" : "";
+  const label = { KRYTYCZNE: "Ryzyko krytyczne", WYSOKIE: "Ryzyko wysokie", UMIARKOWANE: "Ryzyko umiarkowane", NISKIE: "Ryzyko niskie" }[level];
+  return `<div class="score"><div class="num ${cls}">${value}<small>/100</small></div><div class="lbl ${cls}">${label}</div></div>`;
+}
+
+function headline(w) {
+  const red = w.ryzyka.filter((r) => r.poziom === "CZERWONY").length;
+  const yel = w.ryzyka.filter((r) => r.poziom === "ZOLTY").length;
+  if (red === 1) return "Nie podpisywać w tej wersji. Jedno ustalenie blokuje umowę.";
+  if (red) return `Nie podpisywać w tej wersji. ${({ 2: "Dwa", 3: "Trzy", 4: "Cztery" })[red] || red} ${plural(red, "ustalenie blokuje", "ustalenia blokują", "ustaleń blokuje")} umowę.`;
+  if (yel) return `Do poprawy przed podpisem: ${yel} ${plural(yel, "odstępstwo", "odstępstwa", "odstępstw")} od zasad.`;
+  return "Umowa zgodna ze standardem Grupy Pelion.";
+}
+
+function renderIdle() {
+  const sections = doc.bloki.filter((b) => b.typ === "sekcja").length;
+  $("verdict").innerHTML = `
+    <div class="score"><div class="num idle">—</div><div class="lbl idle">Przed analizą</div></div>
+    <div class="lede"><h1>Umowa gotowa do analizy</h1>
+      <p>${esc(doc.nazwa)}: ${sections ? `${sections} ${plural(sections, "paragraf", "paragrafy", "paragrafów")}, ` : ""}${doc.akapity.length} ${plural(doc.akapity.length, "akapit", "akapity", "akapitów")}. Agent LCAI porówna zapisy z zasadami Grupy Pelion, sprawdzi kontrahenta w wykazie VAT MF, a strony i podwykonawców na liście sankcyjnej MSWiA.</p></div>
+    <div class="panel"><button class="btn big" id="analyze">Analizuj umowę</button>
+      <div class="cta-note">Gemini na Vertex AI · Google ADK · zwykle 30–60 s</div></div>`;
+  $("analyze").addEventListener("click", analyze);
+  $("terms").hidden = true;
+}
+
+function renderDone(w) {
+  const sank = w.sankcje || {}, hits = (sank.trafienia || []).length;
+  const v = w.vat || {};
+  const badAcc = (v.rachunki || []).some((x) => !x.na_liscie);
+  const zs = w.zasady || {};
+  const typeRiskLevel = w.ryzyka.filter((r) => !["ALL-SANKCJE", "ALL-VAT"].includes(r.zasada_id)).some((r) => r.poziom === "CZERWONY") ? "bad" : "warn";
+  const reg = w.zapis_rejestru;
+  $("verdict").innerHTML = `
+    ${scoreBlock(w.score.wartosc, w.score.poziom)}
+    <div class="lede"><h1>${esc(headline(w))}</h1><p>${esc(w.podsumowanie)}</p></div>
+    <div class="panel"><ul class="checks">
+      <li><span class="dot ${hits ? "bad" : ""}"></span><span><span class="k">Lista sankcyjna MSWiA</span><br>
+        <span class="v ${hits ? "bad" : ""}">wpisów na liście: ${sank.wpisow_na_liscie ?? "—"} · trafienia: ${hits}${hits ? " (" + esc(sank.trafienia.map((h) => h.nazwa_na_liscie).join(", ")) + ")" : ""}</span></span></li>
+      <li><span class="dot ${v.blad ? "warn" : (v.status_vat !== "Czynny" || badAcc) ? "bad" : ""}"></span><span><span class="k">Wykaz podatników VAT MF</span><br>
+        <span class="v ${!v.blad && (v.status_vat !== "Czynny" || badAcc) ? "bad" : ""}">${v.blad ? "nie sprawdzono: " + esc(v.blad) :
+          `NIP ${esc(v.nip)} · ${esc(v.status_vat || "brak w wykazie")} · ${badAcc ? "rachunek spoza wykazu" : (v.rachunki || []).length ? "rachunek w wykazie" : "brak rachunku w umowie"}`}</span></span></li>
+      ${zs.liczba ? `<li><span class="dot ${zs.zgodne === zs.liczba ? "" : typeRiskLevel}"></span><span><span class="k">Zasady Grupy Pelion (${esc(zs.typ)})</span><br>
+        <span class="v">${zs.zgodne} z ${zs.liczba} zgodne</span></span></li>` : ""}
+      ${reg ? `<li><span class="dot info"></span><span><span class="k">Rejestr umów</span><br><span class="v">${reg.ok ? `zapisano (${esc(reg.backend)})` : "nie zapisano: " + esc(reg.blad)}</span></span></li>` : ""}
+    </ul></div>`;
+
+  // key terms + payment account
+  const items = (w.kluczowe_zapisy || []).slice(0, 5).map((k) =>
+    `<button class="term" data-p="${k.akapit}"><span class="tk">${esc(k.etykieta)}</span><span class="tv">${esc(k.wartosc)}</span></button>`);
+  if (w.platnosc?.rachunek) {
+    const acc = (v.rachunki || [])[0];
+    const flag = acc ? (acc.na_liscie ? `<span class="flag ok">w wykazie VAT</span>` : `<span class="flag">spoza wykazu VAT</span>`) : "";
+    const riskVat = w.ryzyka.find((r) => r.zasada_id === "ALL-VAT" && r.cytat);
+    items.push(`<button class="term" ${riskVat ? `data-risk="${riskVat.id}"` : `data-p="${w.platnosc.akapit || ""}"`}><span class="tk">Rachunek</span><span class="tv mono">${esc(w.platnosc.rachunek)}</span>${flag}</button>`);
+  }
+  $("terms").innerHTML = items.join("");
+  $("terms").hidden = !items.length;
+  $("terms").querySelectorAll(".term").forEach((t) => t.addEventListener("click", () =>
+    t.dataset.risk ? focusRisk(t.dataset.risk, "note") : focusParagraph(+t.dataset.p)));
+}
+
+async function analyze() {
+  $("analyze").disabled = true;
+  $("verdict").querySelector(".panel").innerHTML = `<ul class="checks" id="live"></ul>`;
+  $("verdict").querySelector(".lbl").textContent = "Analiza w toku";
+  const live = steps($("live"));
+  live.start("Gemini czyta umowę", "rozpoznaje typ, strony i zapisy");
+  try {
+    const state = await runAgent("analiza_umowy", doc.tekst, { nazwa_pliku: doc.nazwa }, (ev) => live.event(ev));
+    if (!state.wynik) throw new Error("Agent nie zwrócił wyniku.");
+    live.done("Score i zapis do rejestru", "gotowe");
+    result = state.wynik;
+    renderDone(result);
+    renderDoc();
+  } catch (e) {
+    live.fail(e.message);
+    const panel = $("verdict").querySelector(".panel");
+    panel.insertAdjacentHTML("beforeend", `<button class="btn" style="margin-top: var(--space-xs)" id="retry">Spróbuj ponownie</button>`);
+    $("retry").addEventListener("click", () => { renderIdle(); });
+  }
+}
+
+function setDoc(d) {
+  doc = d; result = null;
+  $("fileName").textContent = d.nazwa;
+  toggleLoader(false);
+  renderIdle();
+  renderDoc();
+}
+
+// A contract picked by the user opens the analysis tab; the one preloaded at boot stays in the background.
+async function loadSample(name, pokaz = true) {
+  try {
+    setDoc(await api(`/api/przyklady/${encodeURIComponent(name)}`));
+    if (pokaz) pokazWidok("analiza");
+  } catch (e) { alert(e.message); }
+}
+
+$("file").addEventListener("change", async () => {
+  const f = $("file").files[0]; if (!f) return;
+  const fd = new FormData(); fd.append("plik", f);
+  try {
+    const r = await fetch("/api/tekst", { method: "POST", body: fd });
+    const j = await r.json();
+    if (!r.ok) throw new Error(j.detail || r.statusText);
+    setDoc(j);
+    pokazWidok("analiza");
+  } catch (e) { alert(e.message); }
+  $("file").value = "";
+});
+
+// ---------------------------------------------------------------- registry
+const CHIPS = [
+  "Znajdź umowy powierzenia bez zapisu o termination_data_policy",
+  "Które umowy zostały zatwierdzone (APPROVED) mimo czerwonych odstępstw?",
+  "Umowy DPA ze zgłoszeniem naruszeń dłuższym niż 24 godziny",
+  "Umowy B2B z limitem kar powyżej 10%",
+  "Umowy B2B z terminem płatności powyżej 30 dni",
+];
+$("chips").innerHTML = CHIPS.map((c) => `<button type="button" class="chip">${esc(c)}</button>`).join("");
+$("chips").querySelectorAll(".chip").forEach((b) => b.addEventListener("click", () => { $("q").value = b.textContent; ask(); }));
+$("askForm").addEventListener("submit", (e) => { e.preventDefault(); ask(); });
+
+let hits = new Set();
+function statusBadge(u) {
+  if (u.zrodlo === "analiza") return `<span class="badge ${u.score >= 70 ? "b-bad" : "b-info"}">NOWA ANALIZA${u.score != null ? " · " + u.score : ""}</span>`;
+  return `<span class="badge ${u.status === "APPROVED" ? "b-ok" : "b-info"}">${esc(u.status)}</span>`;
+}
+function devs(u) {
+  const list = u.odstepstwa || [];
+  if (!list.length) return u.zrodlo === "analiza" && u.score >= 70
+    ? `<span class="dev red">wynik analizy: ryzyko krytyczne</span>` : `<span class="badge b-ok">zgodna</span>`;
+  return list.map((o) => `<span class="dev ${o.poziom === "CZERWONY" ? "red" : "yellow"}">${esc(o.opis)}</span>`).join("");
+}
+function registryTable(rows) {
+  const sorted = [...rows].sort((a, b) => hits.has(b.file_name) - hits.has(a.file_name));
+  return `<table class="ledger"><thead><tr><th>Kontrahent</th><th>Typ</th><th>Status</th><th>Podpisana</th><th>Sign-off</th><th>Odstępstwa od zasad</th><th>Dokument</th></tr></thead><tbody>${
+    sorted.map((u) => `<tr class="${hits.has(u.file_name) ? "hit" : ""}">
+      <td><div class="who">${esc(u.contractor || "—")}</div><div class="fn">${esc(u.file_name)}</div>${u.motyw ? `<div class="theme-tag">Szablon: ${esc(u.motyw.nazwa)}</div>` : ""}</td>
+      <td>${esc(u.typ)}</td><td>${statusBadge(u)}</td><td class="num">${esc(u.sign_date || "")}</td><td class="num">${esc(u.signoff_date || "")}</td><td>${devs(u)}</td>
+      <td class="num"><div class="doc-actions">
+        <button type="button" class="btn-line btn-sm" data-preview="${esc(u.file_name)}">Podgląd</button>
+        <a class="btn-line btn-sm" href="/api/umowy/${encodeURIComponent(u.file_name)}/docx" download>Pobierz .docx</a>
+      </div></td></tr>`).join("")
+  }</tbody></table>`;
+}
+async function openContractPreview(name) {
+  try {
+    setDoc(await api(`/api/umowy/${encodeURIComponent(name)}`));
+    pokazWidok("analiza");
+    window.scrollTo({ top: 0, behavior });
+  } catch (e) { alert(e.message); }
+}
+async function loadRegistry() {
+  try {
+    const r = await api("/api/rejestr");
+    $("backend").textContent = `${r.backend} · ${r.tabela} · ${r.umowy.length} umów`;
+    $("registry").innerHTML = registryTable(r.umowy);
+    $("registry").querySelectorAll("[data-preview]").forEach((b) =>
+      b.addEventListener("click", () => openContractPreview(b.dataset.preview))
+    );
+  } catch (e) { $("registry").innerHTML = `<p class="errbox" style="padding: 0 var(--space-sm)">${esc(e.message)}</p>`; }
+}
+function sqlHtml(sql) {
+  return esc(sql).replace(/\b(SELECT|FROM|WHERE|AND|OR|ORDER BY|GROUP BY|LIMIT|LIKE|IN|NOT|IS|NULL|AS|COUNT|LOWER)\b/g, "<b>$1</b>")
+                 .replace(/(&#39;[^&]*?&#39;)/g, "<s>$1</s>");
+}
+async function ask() {
+  const q = $("q").value.trim(); if (!q) return;
+  $("askBtn").disabled = true;
+  $("answer").innerHTML = `<div class="answer"><div><h3>Agent LCAI pracuje</h3><ul class="checks" id="live2"></ul></div><div></div></div>`;
+  const live = steps($("live2"), ["Gemini analizuje wynik", "dobiera umowy i pisze odpowiedź"]);
+  live.start("Gemini interpretuje pytanie", q);
+  try {
+    const state = await runAgent("rejestr_umow", q, {}, (ev) => live.event(ev));
+    const w = state.wynik;
+    if (!w) throw new Error("Agent nie zwrócił wyniku.");
+    hits = new Set(w.umowy.map((u) => u.file_name));
+    $("answer").innerHTML = `<div class="answer">
+      <div><h3>Odpowiedź agenta LCAI · ${w.umowy.length} ${plural(w.umowy.length, "umowa", "umowy", "umów")}</h3><p>${esc(w.odpowiedz)}</p></div>
+      <div><h3>${w.sql ? "Zapytanie wygenerowane przez agenta" : "Metoda"}</h3>
+        ${w.sql ? `<pre class="sql">${sqlHtml(w.sql)}</pre>` : `<p>Deterministyczna ocena umów względem zasad Grupy Pelion.</p>`}</div></div>`;
+    loadRegistry();
+  } catch (e) {
+    live.fail(e.message);
+  } finally { $("askBtn").disabled = false; }
+}
+
+// ---------------------------------------------------------------- daily summary (presentation mock)
+// Mocked LCAI Agent response, in the shape the backend is meant to return later:
+// ogolne_podsumowanie_ai (Gemini text) + statystyki + alerty_wygasania_30_dni + alerty_okna_renegocjacji.
+// Nothing here calls the model or the registry, and the action buttons only change their own label.
+// Days are relative to today so the demo reads right on any date; {powitanie} and {data} are filled in on render.
+const PULPIT_MOCK = {
+  ogolne_podsumowanie_ai: "{powitanie} Na dzień dzisiejszy ({data}) Twój system zidentyfikował 2 krytyczne umowy wymagające natychmiastowej reakcji. "
+    + "Umowa powierzenia z SecureLink Cyber S.A. wygasa za 6 dni: bez aneksu przetwarzanie danych osobowych straci podstawę prawną. "
+    + "Umowa B2B z InsurCloud Systems LLC kończy się za 19 dni i nie przewiduje automatycznego przedłużenia. "
+    + "W oknie renegocjacji są 3 kolejne umowy. Najpilniejsza to DPA z DataFlow Analytics: przy przedłużeniu warto skrócić termin zgłaszania naruszeń z 72 do 24 godzin. "
+    + "Pozostałe 35 umów nie wymaga dziś działań.",
+  statystyki: { razem_umow_w_bazie: 40, umowy_b2b: 17, umowy_dpa: 14, pilne_alerty_count: 2 },
+  alerty_wygasania_30_dni: [
+    { file_name: "dpa_umowa_partner_20.txt", contractor: "SecureLink Cyber S.A. (Partner 20)", typ: "DPA", dni: 6, akcja: "aneks",
+      powod: "Koniec umowy powierzenia. Bez aneksu przetwarzanie danych osobowych straci podstawę prawną." },
+    { file_name: "b2b_umowa_partner_34.txt", contractor: "InsurCloud Systems LLC (Partner 34)", typ: "B2B", dni: 19, akcja: "aneks",
+      powod: "Umowa na czas określony bez klauzuli automatycznego przedłużenia." },
+  ],
+  alerty_okna_renegocjacji: [
+    { file_name: "dpa_umowa_partner_23.txt", contractor: "DataFlow Analytics (Partner 23)", typ: "DPA", dni: 46, akcja: "kontakt",
+      powod: "Zgłoszenie naruszeń w 72 h, standard Grupy Pelion: do 24 h (DPA-NARUSZ)." },
+    { file_name: "nda_umowa_partner_25.txt", contractor: "Apothecary Soft Europe (Partner 25)", typ: "NDA", dni: 67, akcja: "kontakt",
+      powod: "Ochrona poufności przez 2 lata, standard: co najmniej 5 lat (NDA-OKRES)." },
+    { file_name: "b2b_umowa_partner_16.txt", contractor: "PharmaIT Solutions Sp. z o.o. (Partner 16)", typ: "B2B", dni: 74, akcja: "kontakt",
+      powod: "Brak klauzuli waloryzacji stawek (B2B-WALOR): uzupełnić przy przedłużeniu." },
+  ],
+};
+const AKCJE = {
+  aneks: ["Generuj aneks", "Generowanie aneksu…", "Aneks przygotowany"],
+  kontakt: ["Skontaktuj się z kontrahentem", "Przygotowanie wiadomości…", "Szkic wiadomości gotowy"],
+};
+let pulpitGotowy = false;
+
+const terminZa = (dni) => { const d = new Date(); d.setDate(d.getDate() + dni); return d.toLocaleDateString("sv-SE"); };
+const dzisiaj = () => new Date().toLocaleDateString("pl-PL", { day: "numeric", month: "long", year: "numeric" }) + " r.";
+// First name from a two-part login (jan.kowalski -> Jan); a one-part login gets a greeting without a name.
+function powitanie() {
+  let login = "";
+  try { login = sessionStorage.getItem(LOGIN_KEY) || ""; } catch {}
+  const parts = login.split("@")[0].split(/[\s._-]+/).filter(Boolean);
+  const imie = parts.length >= 2 && /^\p{L}+$/u.test(parts[0]) ? parts[0][0].toUpperCase() + parts[0].slice(1).toLowerCase() : "";
+  return imie ? `Dzień dobry, ${imie}.` : "Dzień dobry.";
+}
+
+function renderPulpit() {
+  // behind the login screen there is no user to greet yet; the first render waits for the login
+  if (pulpitGotowy || document.body.classList.contains("locked")) return;
+  pulpitGotowy = true;
+  const p = PULPIT_MOCK, s = p.statystyki;
+  $("stats").innerHTML = [
+    ["all", "Wszystkie umowy", s.razem_umow_w_bazie, "w rejestrze"],
+    ["b2b", "Umowy B2B", s.umowy_b2b, "świadczenie usług"],
+    ["dpa", "Umowy DPA", s.umowy_dpa, "powierzenie danych"],
+    ["alert", "Pilne alerty", s.pilne_alerty_count, "wygasają w ciągu 30 dni"],
+  ].map(([cls, k, v, sub]) => `<div class="stat ${cls}"><span class="sk">${k}</span><span class="sv">${v}</span><span class="ss">${sub}</span></div>`).join("");
+
+  const rows = [
+    ...p.alerty_wygasania_30_dni.map((a) => ({ ...a, badge: `<span class="badge b-bad">Wygasa za ${a.dni} ${plural(a.dni, "dzień", "dni", "dni")}</span>` })),
+    ...p.alerty_okna_renegocjacji.map((a) => ({ ...a, badge: `<span class="badge b-warn">Okno renegocjacji · ${a.dni} dni</span>` })),
+  ];
+  $("actionsCount").textContent = `${rows.length} ${plural(rows.length, "umowa", "umowy", "umów")} · wygasanie do 30 dni i okno renegocjacji`;
+  $("actions").innerHTML = `<table class="ledger"><thead><tr><th>Kontrahent</th><th>Typ</th><th>Alert</th><th>Koniec umowy</th><th>Powód</th><th>Akcja</th></tr></thead><tbody>${
+    rows.map((a) => `<tr>
+      <td><div class="who">${esc(a.contractor)}</div><div class="fn">${esc(a.file_name)}</div></td>
+      <td>${esc(a.typ)}</td><td>${a.badge}</td><td class="num">${terminZa(a.dni)}</td><td class="why">${esc(a.powod)}</td>
+      <td><button type="button" class="${a.akcja === "aneks" ? "btn" : "btn-line"} btn-sm act" data-akcja="${a.akcja}">${AKCJE[a.akcja][0]}</button></td></tr>`).join("")
+  }</tbody></table>`;
+
+  // the "AI" text arrives after a short pause, like a model response would
+  $("copilotText").innerHTML = `<p class="thinking"><span class="dot run"></span>LCAI Agent analizuje rejestr umów…</p>`;
+  setTimeout(() => {
+    const tekst = p.ogolne_podsumowanie_ai.replace("{powitanie}", powitanie()).replace("{data}", dzisiaj());
+    $("copilotText").innerHTML = `<p class="reveal">${esc(tekst)}</p>`;
+  }, reduce ? 0 : 1200);
+}
+$("actions").addEventListener("click", (e) => {
+  const b = e.target.closest("button[data-akcja]");
+  if (!b || b.disabled) return;
+  const [, wToku, gotowe] = AKCJE[b.dataset.akcja];
+  b.disabled = true;
+  b.textContent = wToku;
+  setTimeout(() => { b.textContent = `✓ ${gotowe}`; b.classList.add("done"); }, reduce ? 0 : 1100);
+});
+
+// ---------------------------------------------------------------- rules (view + session-only editing)
+let ZASADY_LISTA = [];
+let ruleFilter = "";
+const RULE_GROUPS = [
+  ["B2B", "Umowy B2B", "świadczenie usług"],
+  ["DPA", "Umowy powierzenia", "DPA, przetwarzanie danych osobowych"],
+  ["NDA", "Umowy o poufności", "NDA"],
+  ["ALL", "Wszystkie umowy", "obowiązują każdy typ"],
+];
+const KRYT = { KRYTYCZNA: ["Krytyczna", "k-kryt"], WYSOKA: ["Wysoka", "k-wys"], SREDNIA: ["Średnia", "k-sr"], NISKA: ["Niska", "k-nis"] };
+const METODA = {
+  llm: ["Gemini ocenia zapis", "info", "model czyta klauzulę umowy i przypisuje próg"],
+  prog: ["Próg liczony w kodzie", "", "Gemini odczytuje wartość z umowy, kod przypisuje poziom"],
+  rejestr: ["Źródło zewnętrzne", "navy", "wykaz podatników VAT MF i lista sankcyjna MSWiA"],
+};
+const appliesTo = (z, typ) => !typ || z.typ === typ || (z.typ === "ALL" && !(z.nie_dotyczy || []).includes(typ));
+
+function levelHtml(cls, label, text, pts) {
+  const none = !text || text.trim() === "-";
+  return `<div class="lvl ${none ? "na" : cls}"><span class="lk">${label}${!none && pts ? `<b>+${pts} pkt</b>` : ""}</span>
+    <p>${none ? "brak tego poziomu" : esc(text)}</p></div>`;
+}
+
+// Session-only editing: overrides live in sessionStorage of this tab. The agent and the code keep the original rules.
+const EDYCJE_KEY = "lcai.zasady.edycje";
+const POLA = ["kategoria", "wymaganie", "krytycznosc", "zielony", "zolty", "czerwony", "rekomendacja"];
+let EDYCJE = {};
+try { EDYCJE = JSON.parse(sessionStorage.getItem(EDYCJE_KEY) || "{}") || {}; } catch { EDYCJE = {}; }
+let editingId = null;
+function zapiszEdycje() { try { sessionStorage.setItem(EDYCJE_KEY, JSON.stringify(EDYCJE)); } catch {} }
+
+// points per criticality, taken from the rules the server scored, so the weights are not duplicated here
+function wagi() {
+  const m = {};
+  for (const z of ZASADY_LISTA) if (z.id !== "ALL-SANKCJE") for (const [p, v] of Object.entries(z.punkty || {})) m[`${z.krytycznosc}|${p}`] = v;
+  return m;
+}
+function widok(z) {
+  const e = EDYCJE[z.id];
+  if (!e) return z;
+  const v = { ...z, ...e };
+  if (e.krytycznosc && z.id !== "ALL-SANKCJE") {
+    const w = wagi();
+    v.punkty = { ZOLTY: w[`${v.krytycznosc}|ZOLTY`] ?? 0, CZERWONY: w[`${v.krytycznosc}|CZERWONY`] ?? 0 };
+  }
+  return v;
+}
+
+function ruleHtml(z) {
+  if (z.id === editingId) return ruleEditHtml(z);
+  const v = widok(z), edited = Boolean(EDYCJE[z.id]);
+  const [kLabel, kCls] = KRYT[v.krytycznosc] || [v.krytycznosc, ""];
+  const tags = [`<span class="badge ${kCls}">${esc(kLabel)}</span>`, `<span class="badge how">${esc((METODA[v.metoda] || [""])[0])}</span>`];
+  if ((v.nie_dotyczy || []).length) tags.push(`<span class="badge how">nie dotyczy: ${esc(v.nie_dotyczy.join(", "))}</span>`);
+  if (edited) tags.push(`<span class="badge edited">zmieniona w tej sesji</span>`);
+  return `<article class="rule">
+    <div class="rule-meta"><div class="rule-id">${esc(v.id)}</div><h3>${esc(v.kategoria)}</h3><p>${esc(v.wymaganie)}</p><div class="rule-tags">${tags.join("")}</div>
+      <div class="rule-actions"><button type="button" class="btn-line btn-sm" data-act="edit" data-id="${esc(v.id)}">Edytuj</button>
+        ${edited ? `<button type="button" class="linkbtn" data-act="reset" data-id="${esc(v.id)}">Przywróć oryginał</button>` : ""}</div></div>
+    <div class="levels">${levelHtml("g", "Zielony", v.zielony)}${levelHtml("y", "Żółty", v.zolty, v.punkty?.ZOLTY)}${levelHtml("r", "Czerwony", v.czerwony, v.punkty?.CZERWONY)}</div>
+    ${v.rekomendacja ? `<p class="rule-rec"><b>Rekomendacja przy odstępstwie:</b> ${esc(v.rekomendacja)}</p>` : ""}
+  </article>`;
+}
+
+function ruleEditHtml(z) {
+  const v = widok(z);
+  const options = Object.entries(KRYT).map(([k, [label]]) => `<option value="${k}"${k === v.krytycznosc ? " selected" : ""}>${label}</option>`).join("");
+  const pts = (p) => (v.punkty?.[p] ? `<b data-pts="${p}">+${v.punkty[p]} pkt</b>` : `<b data-pts="${p}"></b>`);
+  const level = (cls, label, key) => `<label class="lvl ${cls}"><span class="lk">${label}${
+      key === "zolty" ? pts("ZOLTY") : key === "czerwony" ? pts("CZERWONY") : ""}</span>
+    <textarea name="${key}" rows="4" placeholder="puste = brak tego poziomu">${esc(v[key] === "-" ? "" : v[key])}</textarea></label>`;
+  return `<form class="rule editing" data-id="${esc(v.id)}" aria-label="Edycja zasady ${esc(v.id)}">
+    <div class="rule-meta"><div class="rule-id">${esc(v.id)}</div>
+      <label class="fld"><span>Nazwa</span><input name="kategoria" value="${esc(v.kategoria)}" required></label>
+      <label class="fld"><span>Wymaganie</span><textarea name="wymaganie" rows="3" required>${esc(v.wymaganie)}</textarea></label>
+      <label class="fld"><span>Krytyczność</span><select name="krytycznosc">${options}</select></label>
+      <div class="rule-actions"><button type="submit" class="btn btn-sm">Zapisz w sesji</button>
+        <button type="button" class="btn-line btn-sm" data-act="cancel">Anuluj</button></div></div>
+    <div class="levels">${level("g", "Zielony", "zielony")}${level("y", "Żółty", "zolty")}${level("r", "Czerwony", "czerwony")}</div>
+    <label class="rule-rec fld"><span>Rekomendacja przy odstępstwie (opcjonalnie)</span><textarea name="rekomendacja" rows="2">${esc(v.rekomendacja || "")}</textarea></label>
+  </form>`;
+}
+
+function zapiszRegule(form) {
+  const id = form.dataset.id;
+  const orig = ZASADY_LISTA.find((z) => z.id === id);
+  if (!orig) return;
+  const data = Object.fromEntries(new FormData(form));
+  const zmiany = {};
+  for (const k of POLA) {
+    let val = String(data[k] ?? "").trim();
+    if (["zielony", "zolty", "czerwony"].includes(k) && !val) val = "-";
+    if (["kategoria", "wymaganie"].includes(k) && !val) continue;  // required: an empty field keeps the original
+    if (val !== String(orig[k] ?? "").trim()) zmiany[k] = val;
+  }
+  if (Object.keys(zmiany).length) EDYCJE[id] = zmiany; else delete EDYCJE[id];
+  zapiszEdycje();
+  zamknijEdycje(id);
+}
+
+function zamknijEdycje(id) {
+  editingId = null;
+  renderRules();
+  $("rules").querySelector(`[data-act="edit"][data-id="${id}"]`)?.focus();
+}
+
+$("rules").addEventListener("click", (e) => {
+  const b = e.target.closest("[data-act]");
+  if (!b) return;
+  if (b.dataset.act === "edit") {
+    editingId = b.dataset.id;
+    renderRules();
+    $("rules").querySelector("form.editing input")?.focus();
+  } else if (b.dataset.act === "cancel") {
+    zamknijEdycje(editingId);
+  } else if (b.dataset.act === "reset") {
+    delete EDYCJE[b.dataset.id];
+    zapiszEdycje();
+    zamknijEdycje(b.dataset.id);
+  }
+});
+$("rules").addEventListener("submit", (e) => { e.preventDefault(); zapiszRegule(e.target); });
+$("rules").addEventListener("change", (e) => {
+  if (e.target.name !== "krytycznosc") return;
+  const form = e.target.form, w = wagi();
+  for (const b of form.querySelectorAll("[data-pts]")) {
+    const p = form.dataset.id === "ALL-SANKCJE" && b.dataset.pts === "CZERWONY" ? 100 : w[`${e.target.value}|${b.dataset.pts}`];
+    b.textContent = p ? `+${p} pkt` : "";
+  }
+});
+$("rules").addEventListener("keydown", (e) => { if (e.key === "Escape" && editingId) zamknijEdycje(editingId); });
+$("rulesSession").addEventListener("click", (e) => {
+  if (!e.target.closest("[data-act='reset-all']")) return;
+  EDYCJE = {};
+  zapiszEdycje();
+  editingId = null;
+  renderRules();
+});
+
+function renderRules() {
+  if (!ZASADY_LISTA.length) { $("rules").innerHTML = `<p class="errbox">Nie udało się pobrać zasad.</p>`; return; }
+  const zmienione = ZASADY_LISTA.filter((z) => EDYCJE[z.id]).length;
+  $("rulesSession").innerHTML = `<span>Edycja działa tylko w tej karcie przeglądarki: agent i kod nadal używają oryginalnych zasad.${
+    zmienione ? ` Zmienione w tej sesji: <b>${zmienione}</b>.` : ""}</span>${
+    zmienione ? `<button type="button" class="linkbtn" data-act="reset-all">Przywróć wszystkie</button>` : ""}`;
+  const count = (m) => ZASADY_LISTA.filter((z) => z.metoda === m).length;
+  $("rulesHow").innerHTML = `<ul class="checks">${Object.entries(METODA).map(([m, [k, dot, v]]) =>
+      `<li><span class="dot ${dot}"></span><span><span class="k">${k} · ${count(m)}</span><br><span class="v">${v}</span></span></li>`).join("")}</ul>
+    <div class="cta-note">Score 0–100 to suma punktów za żółte i czerwone odstępstwa. Trafienie na liście sankcyjnej daje od razu 100.</div>`;
+
+  const filters = [["", "Wszystkie"], ["B2B", "Umowa B2B"], ["DPA", "Umowa DPA"], ["NDA", "Umowa NDA"]];
+  $("ruleFilter").innerHTML = filters.map(([t, label]) =>
+    `<button type="button" class="chip" data-typ="${t}" aria-pressed="${t === ruleFilter}">${label} · ${ZASADY_LISTA.filter((z) => appliesTo(z, t)).length}</button>`).join("");
+  $("ruleFilter").querySelectorAll(".chip").forEach((b) => b.addEventListener("click", () => { ruleFilter = b.dataset.typ; renderRules(); }));
+
+  const shown = ZASADY_LISTA.filter((z) => appliesTo(z, ruleFilter));
+  $("rules").innerHTML = RULE_GROUPS.map(([typ, name, sub]) => {
+    const group = shown.filter((z) => z.typ === typ);
+    if (!group.length) return "";
+    return `<section class="rgroup"><h2>${name} <span>${sub} · ${group.length} ${plural(group.length, "zasada", "zasady", "zasad")}</span></h2>
+      <div class="rlist">${group.map(ruleHtml).join("")}</div></section>`;
+  }).join("");
+}
+
+// ---------------------------------------------------------------- login (presentation only)
+// Any login and password pass. Only the login name is kept (sessionStorage); the password is never stored or sent.
+const LOGIN_KEY = "lcai.login";
+// Logins are usually built from first and last name: michal.siwik@example.com -> MS, jan.kowalski -> JK.
+// A one-part login keeps its first two letters (msiwik -> MS).
+function inicjaly(login) {
+  const parts = login.split("@")[0].split(/[\s._-]+/).filter(Boolean);
+  if (parts.length >= 2) return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+  return (parts[0] || "?").slice(0, 2).toUpperCase();
+}
+function pokazUzytkownika(login) {
+  const ini = inicjaly(login);
+  $("userInitials").textContent = ini;
+  $("userName").textContent = `Witaj, ${ini}`;
+  $("user").title = login;
+}
+$("loginForm").addEventListener("submit", (e) => {
+  e.preventDefault();
+  const form = e.target;
+  const login = form.login.value.trim() || "demo";
+  form.haslo.value = "";
+  try { sessionStorage.setItem(LOGIN_KEY, login); } catch {}
+  pokazUzytkownika(login);
+  document.body.classList.remove("locked");
+  pokazWidok("pulpit");
+  window.scrollTo(0, 0);
+});
+$("logout").addEventListener("click", () => {
+  // logging out ends the session: session-only rule edits go too, and the next user starts on the first tab
+  try { sessionStorage.removeItem(LOGIN_KEY); sessionStorage.removeItem(EDYCJE_KEY); } catch {}
+  EDYCJE = {};
+  editingId = null;
+  pulpitGotowy = false;  // the next user gets their own greeting and fresh action buttons
+  $("loginForm").reset();
+  document.body.classList.add("locked");
+  pokazWidok("pulpit");
+  $("loginForm").login.focus();
+});
+try { const login = sessionStorage.getItem(LOGIN_KEY); if (login) pokazUzytkownika(login); } catch {}
+renderPulpit();  // already logged in (page reload): the dashboard tab is open from the start
+
+// ---------------------------------------------------------------- boot
+(async () => {
+  try {
+    ZASADY_LISTA = await api("/api/zasady");
+    ZASADY = Object.fromEntries(ZASADY_LISTA.map((z) => [z.id, z]));
+  } catch {}
+  const names = await api("/api/przyklady");
+  $("samples").innerHTML = names.map((n, i) => `<button class="sample${i < 2 ? " demo" : ""}" data-name="${esc(n)}">${esc(n)}</button>`).join("");
+  $("samples").querySelectorAll(".sample").forEach((b) => b.addEventListener("click", () => loadSample(b.dataset.name)));
+  if (names.length) loadSample(names[0], false);
+})();
+</script>
+</body>
+</html>

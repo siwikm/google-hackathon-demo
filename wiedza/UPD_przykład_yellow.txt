@@ -1,0 +1,21 @@
+UMOWA POWIERZENIA PRZETWARZANIA DANYCH OSOBOWYCH (DPA - YELLOW)
+
+Zawarta w Łodzi pomiędzy:
+epruf S.A. z siedzibą w Łodzi (Administrator)
+a
+CodersTech Sp. z o.o. z siedzibą w Gdańsku (Podmiot Przetwarzający).
+
+§ 1 CEL PRZETWARZANIA
+Powierzenie danych osobowych pracowników następuje w celu utrzymania systemu kadrowo-płacowego.
+
+§ 2 PODWYKONAWCY
+Administrator wyraża ogólną zgodę na korzystanie przez Podmiot Przetwarzający z usług dalszych podmiotów przetwarzających. Podmiot Przetwarzający poinformuje Administratora o zmianach z 7-dniowym wyprzedzeniem.
+
+§ 3 ZGŁASZANIE NARUSZEŃ (⚠️ YELLOW RISK - DELAYED NOTIFICATION)
+Podmiot Przetwarzający powiadomi Administratora o naruszeniu ochrony danych osobowych w czasie nie przekraczającym 72 godzin od momentu stwierdzenia naruszenia.
+
+§ 4 AUDYTY (⚠️ YELLOW RISK - AUDIT RESTRICTIONS)
+Administrator jest uprawniony do przeprowadzenia audytu u Podmiotu Przetwarzającego maksymalnie raz w roku kalendarzowym, po uprzednim zawiadomieniu Podmiotu Przetwarzającego z co najmniej 30-dniowym wyprzedzeniem. Koszty audytu pokrywa Administrator.
+
+§ 5 ZWROT LUB USUNIĘCIE DANYCH
+Po zakończeniu świadczenia usług, Podmiot Przetwarzający usunie lub zwróci dane osobowe w terminie 30 dni od wezwania przez Administratora.

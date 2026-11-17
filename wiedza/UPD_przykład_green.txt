@@ -1,0 +1,33 @@
+UMOWA POWIERZENIA PRZETWARZANIA DANYCH OSOBOWYCH (DPA - GREEN)
+
+Zawarta w dniu 13 listopada 2026 r. pomiędzy:
+epruf S.A. z siedzibą w Łodzi, reprezentowaną przez Pawła Świątka (Administrator)
+a
+MedData Integration Sp. z o.o. z siedzibą w Łodzi (Podmiot Przetwarzający).
+
+§ 1 PRZEDMIOT I CZAS TRWANIA
+Podmiot Przetwarzający zobowiązuje się do przetwarzania danych osobowych pacjentów w imieniu Administratora wyłącznie w celu realizacji umowy głównej serwisu platformy medycznej.
+
+§ 2 PODWYKONAWCY (SUB-PROCESSING)
+Podmiot Przetwarzający nie może powierzyć przetwarzania danych innym podmiotom bez uprzedniej, szczegółowej pisemnej zgody Administratora. Informacja o planowanej zmianie podwykonawcy musi być przekazana Administratorowi z minimum 14-dniowym wyprzedzeniem.
+
+§ 3 ZGŁASZANIE NARUSZEŃ
+Podmiot Przetwarzający zobowiązany jest powiadomić Administratora o każdym stwierdzonym naruszeniu ochrony danych osobowych bez zbędnej zwłoki, jednak nie później niż w ciągu 24 godzin od momentu wykrycia takiego naruszenia.
+
+§ 4 PRAWO DO AUDYTU
+Administrator ma prawo do przeprowadzania audytów oraz inspekcji u Podmiotu Przetwarzającego w celu weryfikacji zgodności przetwarzania danych z niniejszą umową oraz przepisami RODO. Audyty mogą odbywać się w godzinach pracy Podmiotu Przetwarzającego.
+
+§ 5 ZWROT I USUNIĘCIE DANYCH
+Po wygaśnięciu lub rozwiązaniu umowy głównej, Podmiot Przetwarzający ma obowiązek niezwłocznie usunąć lub zwrócić Administratorowi wszelkie dane osobowe, usuwając jednocześnie wszelkie istniejące kopie i nośniki danych.
+
+§ 6 ODPOWIEDZIALNOŚĆ
+Podmiot Przetwarzający odpowiada za szkody wyrządzone Administratorowi w związku z przetwarzaniem danych niezgodnie z niniejszą umową lub przepisami RODO do łącznej kwoty 500 000 PLN.
+
+§ 7 DANE OSOBOWE REPREZENTANTÓW STRON
+1. Każda ze Stron jest administratorem danych osobowych reprezentantów i osób kontaktowych drugiej Strony, przetwarzanych w celu zawarcia i wykonania umowy na podstawie art. 6 ust. 1 lit. f RODO.
+2. Dane są przechowywane przez okres obowiązywania umowy oraz do upływu terminu przedawnienia roszczeń. Osobom, których dane dotyczą, przysługuje prawo dostępu do danych, ich sprostowania, usunięcia, ograniczenia przetwarzania, sprzeciwu oraz wniesienia skargi do Prezesa UODO.
+3. Pełna klauzula informacyjna Administratora stanowi Załącznik nr 1 do umowy. Każda ze Stron przekaże ją swoim reprezentantom i osobom kontaktowym.
+
+§ 8 KLAUZULA ANTYKORUPCYJNA
+1. Podmiot Przetwarzający zobowiązuje się przestrzegać przepisów antykorupcyjnych oraz standardów etycznych obowiązujących w Grupie Pelion, w szczególności nie oferować, nie wręczać ani nie przyjmować korzyści majątkowych lub osobistych w związku z realizacją umowy.
+2. Naruszenie zobowiązania, o którym mowa w ust. 1, uprawnia Administratora do rozwiązania umowy ze skutkiem natychmiastowym.

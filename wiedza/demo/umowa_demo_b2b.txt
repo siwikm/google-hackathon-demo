@@ -1,0 +1,49 @@
+UMOWA O ŚWIADCZENIE USŁUG B2B nr 47/KSEF/2026
+
+Zawarta w dniu 16 listopada 2026 r. w Łodzi pomiędzy:
+epruf S.A. z siedzibą w Łodzi, ul. Zbąszyńska 3, 91-342 Łódź, NIP 9471958279, KRS 0000319410, reprezentowaną przez Pawła Świątka – Członka Zarządu (Zleceniodawca)
+a
+MINISTERSTWO FINANSÓW z siedzibą w Warszawie, ul. Świętokrzyska 12, 00-916 Warszawa, NIP 5260250274, REGON 000002217 (Zleceniobiorca).
+
+§ 1 PRZEDMIOT UMOWY
+1. Zleceniobiorca zobowiązuje się do przeprowadzenia cyklu szkoleń oraz świadczenia wsparcia wdrożeniowego w zakresie Krajowego Systemu e-Faktur (KSeF) dla zespołów finansowych i IT Zleceniodawcy.
+2. Szczegółowy harmonogram szkoleń i warsztatów stanowi Załącznik nr 1 do Umowy.
+
+§ 2 OKRES OBOWIĄZYWANIA I WYPOWIEDZENIE
+1. Umowa zostaje zawarta na czas nieokreślony od dnia 1 grudnia 2026 r.
+2. Każda ze Stron może wypowiedzieć Umowę z zachowaniem 3-miesięcznego okresu wypowiedzenia ze skutkiem na koniec miesiąca kalendarzowego.
+
+§ 3 WYNAGRODZENIE I PŁATNOŚCI
+1. Z tytułu realizacji Umowy Zleceniobiorcy przysługuje wynagrodzenie ryczałtowe w wysokości 45 000 PLN netto miesięcznie, powiększone o należny podatek VAT.
+2. Wynagrodzenie płatne będzie w terminie 14 dni od dnia doręczenia prawidłowo wystawionej faktury VAT, na podstawie zaakceptowanego przez Zleceniodawcę miesięcznego protokołu odbioru.
+3. Zapłata nastąpi przelewem na rachunek bankowy Zleceniobiorcy nr PL 50 1140 2004 0000 3102 7865 4321.
+4. Zmiana rachunku bankowego wymaga aneksu w formie pisemnej pod rygorem nieważności.
+
+§ 4 PRZENIESIENIE PRAW AUTORSKICH
+W ramach wynagrodzenia, o którym mowa w § 3, Zleceniobiorca przenosi na Zleceniodawcę autorskie prawa majątkowe do wszelkich materiałów szkoleniowych, dokumentacji i kodu powstałych w ramach realizacji Umowy, na wszystkich polach eksploatacji, z chwilą podpisania miesięcznego protokołu odbioru prac.
+
+§ 5 ZAKAZ KONKURENCJI
+Zleceniobiorca zobowiązuje się, że w okresie obowiązywania Umowy oraz przez okres 12 miesięcy od jej rozwiązania nie będzie świadczył usług wdrożeniowych w zakresie KSeF na rzecz podmiotów bezpośrednio konkurencyjnych wobec epruf S.A. ani Grupy Pelion.
+
+§ 6 PODWYKONAWCY
+1. Zleceniobiorca może powierzyć wykonanie części usług wyłącznie podwykonawcom wskazanym poniżej, za których działania lub zaniechania odpowiada jak za własne:
+a) Akademia Kompetencji Cyfrowych Sp. z o.o. z siedzibą w Krakowie – przygotowanie materiałów szkoleniowych i platformy e-learningowej;
+b) Błażej Reiss, prowadzący jednoosobową działalność gospodarczą – prowadzenie warsztatów stacjonarnych dla zespołów księgowych w Łodzi;
+c) DataBridge Consulting Sp. z o.o. z siedzibą w Poznaniu – wsparcie techniczne integracji z API KSeF.
+2. Zmiana lub dodanie podwykonawcy wymaga uprzedniej pisemnej zgody Zleceniodawcy.
+
+§ 7 KARY UMOWNE
+1. W przypadku opóźnienia w realizacji szkolenia wskazanego w harmonogramie Zleceniobiorca zapłaci karę umowną w wysokości 1 000 PLN za każdy dzień opóźnienia.
+2. Łączny limit kar umownych nałożonych na Zleceniobiorcę nie może przekroczyć 10% wartości całkowitego wynagrodzenia netto wypłaconego na podstawie Umowy.
+
+§ 8 POUFNOŚĆ I DANE OSOBOWE
+1. Zleceniobiorca zobowiązuje się zachować w tajemnicy wszelkie informacje uzyskane w związku z realizacją Umowy.
+2. W zakresie, w jakim realizacja Umowy wymagać będzie przetwarzania danych osobowych, Strony zawrą odrębną umowę powierzenia przetwarzania danych zgodną z art. 28 RODO.
+
+§ 9 PRAWO I SĄD WŁAŚCIWY
+Umowa podlega prawu polskiemu. Wszelkie spory będą rozstrzygane przez sąd powszechny właściwy miejscowo dla siedziby Zleceniodawcy w Łodzi.
+
+§ 10 POSTANOWIENIA KOŃCOWE
+Umowę sporządzono w dwóch jednobrzmiących egzemplarzach, po jednym dla każdej ze Stron.
+
+Zleceniodawca: ______________________          Zleceniobiorca: ______________________

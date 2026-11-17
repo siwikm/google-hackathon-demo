@@ -1,0 +1,42 @@
+UMOWA O ŚWIADCZENIE USŁUG B2B (LCAI - GREEN)
+
+Zawarta w dniu 13 listopada 2026 r. w Łodzi pomiędzy:
+epruf S.A. z siedzibą w Łodzi, ul. Zbąszyńska 3, reprezentowaną przez Pawła Świątka (Zleceniodawca)
+a
+Kamil Wiśniewski, prowadzącym działalność gospodarczą pod firmą "Wiśniewski Tech Solutions" w Łodzi (Zleceniobiorca).
+
+§ 1 PRZEDMIOT UMOWY
+Zleceniobiorca zobowiązuje się do świadczenia usług doradztwa technicznego oraz optymalizacji baz danych dla systemów transakcyjnych Zleceniodawcy.
+
+§ 2 PRZENIESIENIE PRAW AUTORSKICH (IP)
+W ramach wynagrodzenia, o którym mowa w § 4, Zleceniobiorca przenosi na Zleceniodawcę autorskie prawa majątkowe do wszelkich utworów i kodu powstałych w ramach realizacji umowy, na wszystkich polach eksploatacji, z chwilą podpisania miesięcznego protokołu odbioru prac.
+
+§ 3 ZAKAZ KONKURENCJI
+Zleceniobiorca zobowiązuje się, że w okresie obowiązywania niniejszej umowy oraz przez okres 12 miesięcy od jej rozwiązania, nie podejmie działalności konkurencyjnej wobec epruf S.A. ani Grupy Pelion, w tym nie podejmie współpracy z podmiotami bezpośrednio konkurencyjnymi.
+
+§ 4 KARY UMOWNE
+1. W przypadku naruszenia zakazu konkurencji, Zleceniobiorca zapłaci karę umowną w wysokości 10 000 PLN za każdy przypadek naruszenia.
+2. Łączny limit kar umownych nałożonych na Zleceniobiorcę nie może przekroczyć 10% wartości całkowitego wynagrodzenia netto wypłaconego na podstawie umowy.
+
+§ 5 PRAWO I SĄD WŁAŚCIWY
+Umowa podlega prawu polskiemu. Wszelkie spory będą rozstrzygane przez sąd powszechny właściwy miejscowo dla siedziby Zleceniodawcy w Łodzi.
+
+§ 6 WYNAGRODZENIE I PŁATNOŚCI
+1. Z tytułu realizacji umowy Zleceniobiorcy przysługuje wynagrodzenie w wysokości 180 PLN netto za każdą godzinę świadczenia usług, powiększone o należny podatek VAT.
+2. Wynagrodzenie płatne będzie w terminie 14 dni od dnia otrzymania przez Zleceniodawcę prawidłowo wystawionej faktury, na podstawie zaakceptowanego miesięcznego protokołu odbioru prac.
+3. Faktury wystawiane są jako faktury ustrukturyzowane w Krajowym Systemie e-Faktur (KSeF), zgodnie z przepisami ustawy o podatku od towarów i usług. W przypadku niedostępności lub awarii KSeF Zleceniobiorca przekaże fakturę na adres e-mail Zleceniodawcy wskazany do doręczania faktur, w postaci wizualizacji opatrzonej kodem QR, i prześle ją do KSeF w terminie wynikającym z przepisów; termin płatności biegnie wówczas od dnia otrzymania faktury w tej postaci.
+4. Stawka godzinowa podlega waloryzacji raz w roku, od dnia 1 stycznia, o średnioroczny wskaźnik cen towarów i usług konsumpcyjnych ogłoszony przez Prezesa GUS za rok poprzedni. Zmiana stawki wymaga zawarcia aneksu do umowy.
+
+§ 7 ODBIÓR PRAC
+1. Zleceniobiorca przekazuje Zleceniodawcy miesięczny raport z wykonanych prac do 5. dnia roboczego następnego miesiąca.
+2. Zleceniodawca w terminie 10 dni roboczych od otrzymania raportu podpisuje protokół odbioru albo zgłasza uwagi w formie pisemnej lub elektronicznej.
+3. Zleceniobiorca usuwa zgłoszone uwagi w terminie 5 dni roboczych, po czym procedura odbioru jest powtarzana.
+
+§ 8 DANE OSOBOWE REPREZENTANTÓW STRON
+1. Każda ze Stron jest administratorem danych osobowych reprezentantów i osób kontaktowych drugiej Strony, przetwarzanych w celu zawarcia i wykonania umowy na podstawie art. 6 ust. 1 lit. f RODO.
+2. Dane są przechowywane przez okres obowiązywania umowy oraz do upływu terminu przedawnienia roszczeń. Osobom, których dane dotyczą, przysługuje prawo dostępu do danych, ich sprostowania, usunięcia, ograniczenia przetwarzania, sprzeciwu oraz wniesienia skargi do Prezesa UODO.
+3. Pełna klauzula informacyjna Zleceniodawcy stanowi Załącznik nr 1 do umowy. Każda ze Stron przekaże ją swoim reprezentantom i osobom kontaktowym.
+
+§ 9 KLAUZULA ANTYKORUPCYJNA
+1. Zleceniobiorca zobowiązuje się przestrzegać przepisów antykorupcyjnych oraz standardów etycznych obowiązujących w Grupie Pelion, w szczególności nie oferować, nie wręczać ani nie przyjmować korzyści majątkowych lub osobistych w związku z realizacją umowy.
+2. Naruszenie zobowiązania, o którym mowa w ust. 1, uprawnia Zleceniodawcę do rozwiązania umowy ze skutkiem natychmiastowym.

@@ -1,0 +1,21 @@
+UMOWA POWIERZENIA PRZETWARZANIA DANYCH OSOBOWYCH (DPA - RED)
+
+Zawarta pomiędzy:
+epruf S.A. z siedzibą w Łodzi (Administrator)
+a
+MarketingCloud Corp. z siedzibą w Delaware, USA (Podmiot Przetwarzający).
+
+§ 1 CEL PRZETWARZANIA
+Dane osobowe klientów programu refundacyjnego epruf zostają powierzone w celu wysyłki masowego mailingu marketingowego.
+
+§ 2 DALSZE POWIERZENIE (⚠️ RED RISK - FULL FREEDOM FOR SUB-PROCESSORS)
+Podmiot Przetwarzający posiada pełną swobodę w zakresie wyboru i zatrudniania dalszych podmiotów przetwarzających (sub-procesorów) bez konieczności uzyskiwania zgody lub uprzedniego informowania Administratora o zmianach.
+
+§ 3 ZGŁASZANIE NARUSZEŃ (⚠️ RED RISK - EXTREMELY DELAYED)
+Podmiot Przetwarzający zobowiązuje się zgłosić Administratorowi fakt wystąpienia naruszenia ochrony danych osobowych w terminie do 14 dni roboczych od ostatecznego zweryfikowania i potwierdzenia incydentu przez wewnętrzny dział prawny Podmiotu Przetwarzającego.
+
+§ 4 AUDYTY (⚠️ RED RISK - AUDITS TOTALLY BLOCKED)
+Podmiot Przetwarzający nie zezwala na przeprowadzanie fizycznych audytów oraz inspekcji na terenie swoich serwerowni oraz biur przez pracowników Administratora lub audytorów zewnętrznych ze względów bezpieczeństwa i tajemnicy przedsiębiorstwa.
+
+§ 5 LIMIT ODPOWIEDZIALNOŚCI (⚠️ RED RISK - CRITICAL LIABILITY LIMIT)
+Łączna odpowiedzialność odszkodowawcza Podmiotu Przetwarzającego z tytułu naruszenia postanowień niniejszej umowy lub przepisów RODO (w tym za wyciek lub utratę danych) jest ograniczona do kwoty 5 000 PLN (słownie: pięć tysięcy złotych), a odpowiedzialność za utracone korzyści zostaje całkowicie wyłączona.

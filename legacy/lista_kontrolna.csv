@@ -1,0 +1,5 @@
+id,kategoria,wymaganie,standard_grupy_pelion,krytycznosc
+1,Kary Umowne,Kary umowne muszą mieć górny limit,"Łączna wysokość kar umownych nie może przekroczyć 20% wynagrodzenia netto z umowy.",WYSOKA
+2,SLA,Wymagana dostępność usługi i czas reakcji,"Dostępność usługi min. 99,9% w skali miesiąca; czas reakcji na awarię krytyczną max. 4 godziny.",SREDNIA
+3,RODO,Umowa powierzenia przetwarzania danych osobowych,"Jeżeli wykonawca przetwarza dane osobowe, strony zawierają umowę powierzenia zgodną z art. 28 RODO.",WYSOKA
+4,Wypowiedzenie,Okres wypowiedzenia umowy,"Każda ze stron może wypowiedzieć umowę z zachowaniem 3-miesięcznego okresu wypowiedzenia ze skutkiem na koniec miesiąca.",NISKA
